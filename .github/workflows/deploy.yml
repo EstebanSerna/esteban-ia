@@ -27,6 +27,8 @@ jobs:
     steps:
       - name: Descargar el código del repositorio
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # historial completo -- lo necesita el paso de "git diff" mas abajo
 
       - name: Armar carpeta solo con los archivos que van al hosting
         run: |
@@ -55,4 +57,27 @@ jobs:
           local_path: './dist/*'
           remote_path: '/public_html/'
           sftp_only: true
-          delete_remote_files: true
+
+      # El "delete_remote_files" de la accion de arriba necesita el canal
+      # "exec" de SSH para comparar archivos, y StackCP lo bloquea (mismo
+      # motivo que el paso de crear carpetas de arriba) -- por eso se hace
+      # aparte, con -rm en modo batch de sftp puro, que si esta permitido.
+      # Solo aplica en push normal (no en un workflow_dispatch manual, que
+      # no trae "before").
+      - name: Borrar en el servidor los archivos que se borraron en este push
+        if: github.event_name == 'push'
+        run: |
+          DELETED=$(git diff --name-only --diff-filter=D "${{ github.event.before }}" "${{ github.sha }}" 2>/dev/null || true)
+          if [ -z "$DELETED" ]; then
+            echo "No hay archivos borrados en este push."
+          else
+            echo "Archivos a borrar en el servidor:"
+            echo "$DELETED"
+            {
+              echo "$DELETED" | while IFS= read -r f; do
+                [ -n "$f" ] && echo "-rm /public_html/$f"
+              done
+              echo "bye"
+            } > /tmp/sftp_delete_batch.txt
+            sshpass -p "${{ secrets.FTP_PASSWORD }}" sftp -oStrictHostKeyChecking=no -oBatchMode=no -P 22 -b /tmp/sftp_delete_batch.txt "${{ secrets.FTP_USERNAME }}@${{ secrets.FTP_SERVER }}"
+          fi
