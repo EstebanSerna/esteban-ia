@@ -1670,7 +1670,8 @@ async function handleMercadoPagoCheckoutSubmit(e) {
         payerEmail,
         docType,
         docNumber,
-        cardholderName
+        cardholderName,
+        deviceId: window.MP_DEVICE_SESSION_ID || null
       })
     });
     const data = await res.json();

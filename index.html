@@ -32,6 +32,8 @@
 
   <!-- Mercado Pago SDK: tokeniza la tarjeta en el navegador del cliente, nunca toca nuestro servidor -->
   <script src="https://sdk.mercadopago.com/js/v2"></script>
+  <!-- Script de prevencion de fraude de Mercado Pago: genera un device_id que ayuda a que los pagos no queden en revision/rechazo -->
+  <script src="https://www.mercadopago.com/v2/security.js" view="checkout"></script>
 </head>
 <body>
 
@@ -945,6 +947,6 @@
   </div>
 
   <!-- Javascript Scripts -->
-  <script src="js/app.js?v=10"></script>
+  <script src="js/app.js?v=11"></script>
 </body>
 </html>

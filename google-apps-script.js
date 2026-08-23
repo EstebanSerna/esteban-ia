@@ -210,6 +210,9 @@ function handleMercadoPagoCheckout(data) {
       description: (data.planTitle || "Implementación Esteban IA") + " - Pago Único",
       installments: 1,
       payment_method_id: data.paymentMethodId,
+      // binary_mode fuerza una respuesta final (aprobado o rechazado) al
+      // instante, en vez de dejar el pago "in_process" en revision de fraude.
+      binary_mode: true,
       payer: {
         email: data.payerEmail,
         identification: {
@@ -219,6 +222,9 @@ function handleMercadoPagoCheckout(data) {
       }
     };
     if (data.issuerId) paymentBody.issuer_id = data.issuerId;
+    if (data.deviceId) {
+      paymentBody.additional_info = { device: { id: data.deviceId } };
+    }
 
     const paymentResponse = UrlFetchApp.fetch("https://api.mercadopago.com/v1/payments", {
       method: "post",
@@ -235,7 +241,14 @@ function handleMercadoPagoCheckout(data) {
 
     if (paymentResult.status !== "approved") {
       const reason = translatePaymentStatusDetail_(paymentResult.status_detail) || paymentResult.message || "Tu pago no fue aprobado";
-      return createJsonResponse({ success: false, paymentApproved: false, error: reason });
+      // TEMPORAL para depurar el sandbox: incluye el detalle crudo de Mercado Pago.
+      // Quitar el campo "debug" antes de pasar a produccion.
+      return createJsonResponse({
+        success: false,
+        paymentApproved: false,
+        error: reason,
+        debug: { status: paymentResult.status, status_detail: paymentResult.status_detail, message: paymentResult.message, cause: paymentResult.cause }
+      });
     }
 
     // 2) Pago aprobado -> activar la suscripción mensual con el SEGUNDO token
