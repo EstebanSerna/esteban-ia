@@ -76,6 +76,16 @@ El mismo backend de Apps Script funciona como proxy seguro para que el simulador
 
 Si no configuras la API key, el simulador sigue funcionando con un motor de IA gratuito de respaldo.
 
+### 💳 Activar el Checkout de Mercado Pago
+
+El mismo backend procesa el pago único de implementación y activa la suscripción mensual (con un segundo token de la misma tarjeta), y recibe los Webhooks de Mercado Pago para resolver pagos que quedan "en revisión":
+
+1. En tu app de [Mercado Pago Developers](https://www.mercadopago.com.co/developers/panel), copia el **Access Token** (Credenciales de producción).
+2. En Apps Script: **Configuración del proyecto** → **Propiedades del script** → **Añadir propiedad del script**.
+3. Nombre: `MP_ACCESS_TOKEN`, Valor: tu Access Token. Guardar.
+4. La constante `WEBHOOK_NOTIFICATION_URL` en `google-apps-script.js` debe apuntar a la URL `/exec` de esta misma implementación (ya viene configurada); Mercado Pago la usa para avisar por Webhook cuando cambia el estado de un pago.
+5. En el panel de Mercado Pago (**Tu app → Webhooks**), registra esa misma URL `/exec` con el evento **Pagos**.
+
 ---
 
 ## 📄 Licencia

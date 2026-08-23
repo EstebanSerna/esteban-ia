@@ -37,6 +37,12 @@ const ESTEBAN_EMAIL = "esteban.serna.garcia@gmail.com"; // Reemplaza por tu corr
 const CHAT_RATE_LIMIT_PER_MINUTE = 20; // Maximo de mensajes de chat aceptados por minuto (para todos los visitantes juntos)
 const CHECKOUT_RATE_LIMIT_PER_MINUTE = 10; // Maximo de intentos de pago aceptados por minuto (para todos los visitantes juntos)
 const SUBSCRIPTION_FREE_TRIAL_DAYS = 30; // El pago unico de hoy cubre la implementacion; la mensualidad empieza a cobrarse este numero de dias despues
+// URL publica de esta misma implementacion (termina en /exec). Se le pasa a
+// Mercado Pago como "notification_url" para que nos avise por Webhook cuando
+// cambie el estado de un pago o suscripcion (requisito de "Calidad de
+// integracion" y necesario para resolver pagos que quedan "en revision").
+// Debe coincidir con DEFAULT_WEBHOOK_URL en js/app.js.
+const WEBHOOK_NOTIFICATION_URL = "https://script.google.com/macros/s/AKfycbyMWlRXHMRUvLN45NqEecusRBk7NOeuJWrUFLTCbTLv8Wqh_dO4VRIHcYwEph_sLHcY/exec";
 
 function doPost(e) {
   try {
@@ -45,6 +51,13 @@ function doPost(e) {
     }
 
     const data = JSON.parse(e.postData.contents);
+
+    // Notificacion Webhook de Mercado Pago (pago o suscripcion creado/
+    // actualizado). Se distingue de nuestras propias llamadas porque trae
+    // "type":"payment" y "data.id", no nuestro campo "action" de chat/checkout.
+    if (data.type === "payment" && data.data && data.data.id) {
+      return handleMercadoPagoWebhook_(data.data.id);
+    }
 
     // Ruta del proxy de chat con Claude (usada por el simulador de IA de la web)
     if (data.action === "chat") {
@@ -205,35 +218,60 @@ function handleMercadoPagoCheckout(data) {
     }
 
     // 1) Cobrar el pago único con el primer token
+    const firstName = (data.cardholderName || "").trim().split(/\s+/)[0] || "";
+    const lastName = (data.cardholderName || "").trim().split(/\s+/).slice(1).join(" ") || "";
     const paymentBody = {
       transaction_amount: Number(data.oneTimeAmount),
       token: data.oneTimeToken,
       description: (data.planTitle || "Implementación Esteban IA") + " - Pago Único",
+      statement_descriptor: "ESTEBAN IA",
       installments: 1,
       payment_method_id: data.paymentMethodId,
+      external_reference: "pay_" + (data.serviceKey || "plan").replace(/\s+/g, "_") + "_" + Date.now(),
+      notification_url: WEBHOOK_NOTIFICATION_URL,
       payer: {
         email: data.payerEmail,
+        first_name: firstName,
+        last_name: lastName,
         identification: {
           type: data.docType || "CC",
           number: data.docNumber || ""
         }
+      },
+      additional_info: {
+        items: [
+          {
+            id: (data.serviceKey || "plan").replace(/\s+/g, "_").toLowerCase(),
+            title: data.planTitle || "Plan Esteban IA",
+            description: "Implementación de " + (data.planTitle || "agente de IA") + " para negocio - pago único inicial",
+            category_id: "services",
+            quantity: 1,
+            unit_price: Number(data.oneTimeAmount)
+          }
+        ],
+        payer: {
+          first_name: firstName,
+          last_name: lastName,
+          phone: { number: data.payerWhatsapp || "" }
+        }
       }
     };
     if (data.issuerId) paymentBody.issuer_id = data.issuerId;
-    // Nota: se intento mandar el device_id anti-fraude via
-    // additional_info.device.id pero Mercado Pago lo rechazo como campo
-    // invalido ("The name of the following parameters is wrong"). Se quita
-    // por ahora -- es un dato opcional para mejorar aprobacion, no
-    // obligatorio para que el pago funcione. Revisar el formato correcto
-    // mas adelante si hace falta.
+
+    // Device ID anti-fraude: NO va en additional_info.device (Mercado Pago lo
+    // rechaza como campo invalido); va como header X-meli-session-id.
+    const paymentHeaders = {
+      "Authorization": "Bearer " + accessToken,
+      "X-Idempotency-Key": Utilities.getUuid()
+    };
+    if (data.deviceId) {
+      paymentHeaders["X-meli-session-id"] = data.deviceId;
+    }
 
     const paymentResponse = UrlFetchApp.fetch("https://api.mercadopago.com/v1/payments", {
       method: "post",
       contentType: "application/json",
-      headers: {
-        "Authorization": "Bearer " + accessToken,
-        "X-Idempotency-Key": Utilities.getUuid()
-      },
+      headers: paymentHeaders,
       payload: JSON.stringify(paymentBody),
       muteHttpExceptions: true
     });
@@ -244,6 +282,9 @@ function handleMercadoPagoCheckout(data) {
     // pasa con pagos reales tambien, no solo en sandbox). No se activa la
     // suscripcion todavia -- se espera a que el pago se apruebe de verdad.
     if (paymentResult.status === "in_process" || paymentResult.status === "pending") {
+      // Se guarda el token de suscripcion (sin usar todavia) para poder
+      // activarla mas tarde si el Webhook nos avisa que el pago se aprobo.
+      savePendingCheckout_(paymentResult.id, data);
       notifyPendingPayment_(data, paymentResult);
       return createJsonResponse({
         success: false,
@@ -259,41 +300,9 @@ function handleMercadoPagoCheckout(data) {
     }
 
     // 2) Pago aprobado -> activar la suscripción mensual con el SEGUNDO token.
-    // La suscripción queda autorizada desde ya, pero el primer cobro
-    // mensual no ocurre hasta dentro de SUBSCRIPTION_FREE_TRIAL_DAYS
-    // (el pago único de hoy ya cubre la implementación).
-    const startDate = new Date(Date.now() + SUBSCRIPTION_FREE_TRIAL_DAYS * 24 * 60 * 60 * 1000);
-    const subscriptionBody = {
-      payer_email: data.payerEmail,
-      card_token_id: data.subscriptionToken,
-      reason: (data.planTitle || "Esteban IA") + " - Sostenimiento Mensual",
-      external_reference: "sub_" + (data.serviceKey || "plan").replace(/\s+/g, "_") + "_" + Date.now(),
-      back_url: "https://esteban-serna.com/",
-      status: "authorized",
-      auto_recurring: {
-        frequency: 1,
-        frequency_type: "months",
-        start_date: startDate.toISOString(),
-        transaction_amount: Number(data.monthlyAmount),
-        currency_id: "COP"
-      }
-    };
+    const activation = activateSubscriptionAndNotify_(data, paymentResult);
 
-    const subResponse = UrlFetchApp.fetch("https://api.mercadopago.com/preapproval", {
-      method: "post",
-      contentType: "application/json",
-      headers: { "Authorization": "Bearer " + accessToken },
-      payload: JSON.stringify(subscriptionBody),
-      muteHttpExceptions: true
-    });
-
-    const subResult = JSON.parse(subResponse.getContentText());
-    const subscriptionActive = subResult.status === "authorized" || subResult.status === "pending";
-
-    if (!subscriptionActive) {
-      // El dinero del pago único ya se cobró pero la suscripción no quedó
-      // activa: se avisa por correo para que Esteban le dé seguimiento manual.
-      notifyPartialCheckoutFailure_(data, paymentResult, subResult);
+    if (!activation.subscriptionActive) {
       return createJsonResponse({
         success: false,
         paymentApproved: true,
@@ -302,40 +311,157 @@ function handleMercadoPagoCheckout(data) {
       });
     }
 
-    // Registrar la venta en el calendario, igual que una reserva normal
-    try {
-      const calendar = CalendarApp.getDefaultCalendar();
-      calendar.createEvent(
-        "Venta: " + (data.cardholderName || data.payerEmail) + " (" + (data.planTitle || "Plan") + ")",
-        new Date(),
-        new Date(Date.now() + 30 * 60 * 1000),
-        {
-          description:
-            "Pago único: $" + data.oneTimeAmount + " COP\n" +
-            "Suscripción: $" + data.monthlyAmount + " COP/mes (empieza en " + SUBSCRIPTION_FREE_TRIAL_DAYS + " días)\n" +
-            "Correo: " + data.payerEmail + "\n" +
-            "WhatsApp: " + (data.payerWhatsapp || "no proporcionado") + "\n" +
-            "ID Pago: " + paymentResult.id + "\n" +
-            "ID Suscripción: " + subResult.id
-        }
-      );
-    } catch (calErr) {
-      // No bloquea la respuesta al cliente si falla el registro en calendario
-    }
-
-    // Avisar por correo para arrancar la implementacion cuanto antes
-    notifySuccessfulSale_(data, paymentResult, subResult, startDate);
-
     return createJsonResponse({
       success: true,
       paymentApproved: true,
       subscriptionActive: true,
       paymentId: paymentResult.id,
-      subscriptionId: subResult.id
+      subscriptionId: activation.subResult.id
     });
 
   } catch (err) {
     return createJsonResponse({ success: false, error: err.message });
+  }
+}
+
+// Activa la suscripción mensual (segundo token) una vez el pago único ya
+// quedó aprobado -- la usan tanto el flujo síncrono (pago aprobado al
+// instante) como el Webhook (pago que quedó "en revisión" y se aprobó
+// después). La suscripción queda autorizada desde ya, pero el primer cobro
+// mensual no ocurre hasta dentro de SUBSCRIPTION_FREE_TRIAL_DAYS (el pago
+// único de hoy ya cubre la implementación).
+function activateSubscriptionAndNotify_(data, paymentResult) {
+  const accessToken = PropertiesService.getScriptProperties().getProperty("MP_ACCESS_TOKEN");
+  const startDate = new Date(Date.now() + SUBSCRIPTION_FREE_TRIAL_DAYS * 24 * 60 * 60 * 1000);
+  const subscriptionBody = {
+    payer_email: data.payerEmail,
+    card_token_id: data.subscriptionToken,
+    reason: (data.planTitle || "Esteban IA") + " - Sostenimiento Mensual",
+    external_reference: "sub_" + (data.serviceKey || "plan").replace(/\s+/g, "_") + "_" + Date.now(),
+    back_url: "https://esteban-serna.com/",
+    notification_url: WEBHOOK_NOTIFICATION_URL,
+    status: "authorized",
+    auto_recurring: {
+      frequency: 1,
+      frequency_type: "months",
+      start_date: startDate.toISOString(),
+      transaction_amount: Number(data.monthlyAmount),
+      currency_id: "COP"
+    }
+  };
+
+  const subResponse = UrlFetchApp.fetch("https://api.mercadopago.com/preapproval", {
+    method: "post",
+    contentType: "application/json",
+    headers: { "Authorization": "Bearer " + accessToken },
+    payload: JSON.stringify(subscriptionBody),
+    muteHttpExceptions: true
+  });
+
+  const subResult = JSON.parse(subResponse.getContentText());
+  const subscriptionActive = subResult.status === "authorized" || subResult.status === "pending";
+
+  if (!subscriptionActive) {
+    // El dinero del pago único ya se cobró pero la suscripción no quedó
+    // activa: se avisa por correo para que Esteban le dé seguimiento manual.
+    notifyPartialCheckoutFailure_(data, paymentResult, subResult);
+    return { subscriptionActive: false, subResult: subResult };
+  }
+
+  // Registrar la venta en el calendario, igual que una reserva normal
+  try {
+    const calendar = CalendarApp.getDefaultCalendar();
+    calendar.createEvent(
+      "Venta: " + (data.cardholderName || data.payerEmail) + " (" + (data.planTitle || "Plan") + ")",
+      new Date(),
+      new Date(Date.now() + 30 * 60 * 1000),
+      {
+        description:
+          "Pago único: $" + data.oneTimeAmount + " COP\n" +
+          "Suscripción: $" + data.monthlyAmount + " COP/mes (empieza en " + SUBSCRIPTION_FREE_TRIAL_DAYS + " días)\n" +
+          "Correo: " + data.payerEmail + "\n" +
+          "WhatsApp: " + (data.payerWhatsapp || "no proporcionado") + "\n" +
+          "ID Pago: " + paymentResult.id + "\n" +
+          "ID Suscripción: " + subResult.id
+      }
+    );
+  } catch (calErr) {
+    // No bloquea la respuesta al cliente si falla el registro en calendario
+  }
+
+  // Avisar por correo para arrancar la implementacion cuanto antes
+  notifySuccessfulSale_(data, paymentResult, subResult, startDate);
+
+  return { subscriptionActive: true, subResult: subResult };
+}
+
+// Guarda temporalmente los datos de un checkout cuyo pago quedó "en
+// revisión", para poder retomarlo desde el Webhook si Mercado Pago lo
+// aprueba mas tarde (el token de suscripción, al no haberse usado todavía,
+// sigue sirviendo). Se usa PropertiesService en vez de CacheService porque
+// este último tiene un tope de 6 horas, insuficiente para algunos casos.
+function savePendingCheckout_(paymentId, data) {
+  try {
+    PropertiesService.getScriptProperties().setProperty(
+      "pending_" + paymentId,
+      JSON.stringify({
+        subscriptionToken: data.subscriptionToken,
+        payerEmail: data.payerEmail,
+        payerWhatsapp: data.payerWhatsapp,
+        planTitle: data.planTitle,
+        serviceKey: data.serviceKey,
+        oneTimeAmount: data.oneTimeAmount,
+        monthlyAmount: data.monthlyAmount,
+        docType: data.docType,
+        docNumber: data.docNumber,
+        cardholderName: data.cardholderName
+      })
+    );
+  } catch (propErr) {
+    // Si falla el guardado, en el peor caso ese pago pendiente no se retoma
+    // solo -- Esteban ya recibio el correo de "pago en revision" para
+    // hacerle seguimiento manual.
+  }
+}
+
+// Webhook de Mercado Pago: nos avisa cuando cambia el estado de un pago.
+// Solo actua sobre pagos que quedaron guardados como "pendientes" desde
+// handleMercadoPagoCheckout -- si no hay registro guardado, no hace nada
+// (evita duplicar la activacion/notificacion de pagos ya resueltos al
+// instante). Siempre responde 200 para que Mercado Pago no reintente.
+function handleMercadoPagoWebhook_(paymentId) {
+  try {
+    const accessToken = PropertiesService.getScriptProperties().getProperty("MP_ACCESS_TOKEN");
+    if (!accessToken) {
+      return createJsonResponse({ success: true });
+    }
+
+    const props = PropertiesService.getScriptProperties();
+    const storedJson = props.getProperty("pending_" + paymentId);
+    if (!storedJson) {
+      return createJsonResponse({ success: true });
+    }
+
+    const paymentResponse = UrlFetchApp.fetch("https://api.mercadopago.com/v1/payments/" + paymentId, {
+      method: "get",
+      headers: { "Authorization": "Bearer " + accessToken },
+      muteHttpExceptions: true
+    });
+    const paymentResult = JSON.parse(paymentResponse.getContentText());
+    const data = JSON.parse(storedJson);
+
+    if (paymentResult.status === "approved") {
+      activateSubscriptionAndNotify_(data, paymentResult);
+      props.deleteProperty("pending_" + paymentId);
+    } else if (paymentResult.status === "rejected" || paymentResult.status === "cancelled") {
+      props.deleteProperty("pending_" + paymentId);
+      notifyPendingResolvedAsRejected_(data, paymentResult);
+    }
+    // Si sigue "in_process"/"pending", se deja el registro para el proximo aviso.
+
+    return createJsonResponse({ success: true });
+  } catch (err) {
+    return createJsonResponse({ success: true });
   }
 }
 
@@ -415,9 +541,10 @@ function notifyPartialCheckoutFailure_(data, paymentResult, subResult) {
 }
 
 // Notifica cuando un pago queda "en revision" (in_process/pending) del lado
-// de Mercado Pago, para que se le pueda hacer seguimiento -- si se aprueba
-// mas tarde, hoy no llega una segunda notificacion automatica (necesitaria
-// un Webhook), asi que conviene revisar el estado manualmente en el panel.
+// de Mercado Pago. El Webhook (ver handleMercadoPagoWebhook_) retomará este
+// pago automáticamente cuando Mercado Pago avise que cambió de estado: si se
+// aprueba, activa la suscripción solo; si se rechaza, avisa con
+// notifyPendingResolvedAsRejected_. Este correo es solo el primer aviso.
 function notifyPendingPayment_(data, paymentResult) {
   try {
     MailApp.sendEmail({
@@ -430,7 +557,27 @@ function notifyPendingPayment_(data, paymentResult) {
         "WhatsApp: " + (data.payerWhatsapp || "no proporcionado") + "\n" +
         "Plan: " + (data.planTitle || "-") + "\n" +
         "ID de pago: " + paymentResult.id + "\n\n" +
-        "Revisa el estado en tu panel de Mercado Pago (Actividad) en un rato -- si se aprueba, la suscripción mensual todavía NO quedó activada automáticamente para este caso."
+        "No hace falta que hagas nada: en cuanto Mercado Pago resuelva el pago te llegará un correo nuevo confirmando si se activó la suscripción o si finalmente se rechazó."
+    });
+  } catch (mailErr) {
+    // Si falla el envio del correo no se bloquea el flujo principal
+  }
+}
+
+// Notifica cuando un pago que había quedado "en revisión" se resuelve como
+// rechazado o cancelado (avisado por el Webhook) -- puramente informativo,
+// no requiere ninguna accion.
+function notifyPendingResolvedAsRejected_(data, paymentResult) {
+  try {
+    MailApp.sendEmail({
+      to: ESTEBAN_EMAIL,
+      subject: "❌ Pago finalmente rechazado: " + (data.planTitle || "Plan") + " — " + (data.cardholderName || data.payerEmail),
+      body:
+        "El pago que había quedado \"en revisión\" se resolvió como " + paymentResult.status + " (" + (paymentResult.status_detail || "") + ").\n\n" +
+        "Cliente: " + (data.cardholderName || "-") + "\n" +
+        "Correo: " + data.payerEmail + "\n" +
+        "WhatsApp: " + (data.payerWhatsapp || "no proporcionado") + "\n\n" +
+        "No se activó la suscripción. Es solo informativo, no hace falta que hagas nada."
     });
   } catch (mailErr) {
     // Si falla el envio del correo no se bloquea el flujo principal
