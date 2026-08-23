@@ -543,13 +543,33 @@ h1, h2, h3, h4, h5 {
   font-weight: 400;
 }
 
-/* VALUE LADDER SECTION */
+/* VALUE LADDER SECTION
+   Los 4 planes siempre quedan en una fila horizontal:
+   - Desktop (>=1000px): grid de 4 columnas iguales, una sola fila.
+   - Tablet/móvil (<1000px): carrusel horizontal con scroll-snap (nunca
+     se apilan en columna), mostrando un asomo de la siguiente tarjeta
+     como pista visual de que se puede deslizar. */
 .value-ladder-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 25px;
+  display: flex;
+  gap: 18px;
   max-width: 1200px;
   margin: 0 auto;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 12px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(212, 175, 55, 0.4) transparent;
+}
+
+.value-ladder-grid::-webkit-scrollbar {
+  height: 6px;
+}
+
+.value-ladder-grid::-webkit-scrollbar-thumb {
+  background: rgba(212, 175, 55, 0.35);
+  border-radius: 10px;
 }
 
 .price-card {
@@ -563,6 +583,32 @@ h1, h2, h3, h4, h5 {
   transition: var(--transition-cubic);
   backdrop-filter: blur(15px);
   -webkit-backdrop-filter: blur(15px);
+  flex: 0 0 78%;
+  scroll-snap-align: center;
+}
+
+@media (min-width: 480px) {
+  .price-card {
+    flex-basis: 62%;
+  }
+}
+
+@media (min-width: 650px) {
+  .price-card {
+    flex-basis: 44%;
+  }
+}
+
+@media (min-width: 1000px) {
+  .value-ladder-grid {
+    overflow: visible;
+    padding-bottom: 0;
+  }
+
+  .price-card {
+    flex: 1 1 0;
+    scroll-snap-align: none;
+  }
 }
 
 .price-card:hover {

@@ -21,7 +21,7 @@
   <link class="pwa-icon" rel="apple-touch-icon" href="images/icon-192.png">
   
   <!-- CSS Stylesheet (?v= se sube en cada cambio para evitar CSS viejo en caché) -->
-  <link rel="stylesheet" href="css/styles.css?v=3">
+  <link rel="stylesheet" href="css/styles.css?v=4">
   
   <!-- Google API Client Script for GIS & Google Auth -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -650,12 +650,12 @@
               <a href="#reservar" class="price-cta-btn secondary" onclick="openPaymentModal('Sistema Completo Automatico')">Solicitar Plataforma Empresarial</a>
             </div>
 
-            <!-- DISCLAIMER NOTE ABOUT API COSTS & ANTHROPIC CLAUDE -->
-            <div class="pricing-disclaimer-note" style="grid-column: 1 / -1; margin-top: 20px; padding: 16px 22px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(212, 175, 55, 0.2); border-radius: 12px; font-size: 12px; color: var(--text-muted); line-height: 1.6; text-align: center;">
-              📌 <strong>Nota de Transparencia & Consumos de API:</strong> Los precios listados corresponden a los honorarios de diseño, desarrollo, entrenamiento de modelos, integración técnica y mantenimiento. No incluyen consumos directos de proveedores de infraestructura ni consumo de APIs de Inteligencia Artificial (tales como API Keys de Anthropic Claude, Meta WhatsApp Cloud API, OpenAI, etc.), los cuales son facturados directamente por cada proveedor según el volumen de uso de tu empresa. <br>
-              🧠 <em>Trabajamos e integramos con los modelos de lenguaje más avanzados del mundo, incluyendo <strong>Anthropic Claude 3.5</strong>, Meta API, OpenAI y Google Gemini.</em>
-            </div>
+          </div>
 
+          <!-- DISCLAIMER NOTE ABOUT API COSTS & ANTHROPIC CLAUDE (fuera del carrusel, ancho completo) -->
+          <div class="pricing-disclaimer-note" style="max-width: 1200px; margin: 20px auto 0; padding: 16px 22px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(212, 175, 55, 0.2); border-radius: 12px; font-size: 12px; color: var(--text-muted); line-height: 1.6; text-align: center;">
+            📌 <strong>Nota de Transparencia & Consumos de API:</strong> Los precios listados corresponden a los honorarios de diseño, desarrollo, entrenamiento de modelos, integración técnica y mantenimiento. No incluyen consumos directos de proveedores de infraestructura ni consumo de APIs de Inteligencia Artificial (tales como API Keys de Anthropic Claude, Meta WhatsApp Cloud API, OpenAI, etc.), los cuales son facturados directamente por cada proveedor según el volumen de uso de tu empresa. <br>
+            🧠 <em>Trabajamos e integramos con los modelos de lenguaje más avanzados del mundo, incluyendo <strong>Anthropic Claude 3.5</strong>, Meta API, OpenAI y Google Gemini.</em>
           </div>
         </section>
 
@@ -1032,7 +1032,7 @@
   </div>
 
   <!-- Javascript Scripts -->
-  <script src="js/app.js?v=3"></script>
-  <script src="js/calendar.js?v=3"></script>
+  <script src="js/app.js?v=4"></script>
+  <script src="js/calendar.js?v=4"></script>
 </body>
 </html>
