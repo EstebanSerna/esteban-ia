@@ -1577,9 +1577,20 @@ async function testSubscriptionOnly() {
   showMpCheckoutStatus('info', '[DEBUG] Generando token de la tarjeta (gratis, no cobra)...');
 
   try {
-    const tokenRes = await mpInstance.fields.createCardToken({ cardholderName, identificationType: docType, identificationNumber: docNumber });
+    // Se replica EXACTAMENTE el patron del checkout real: 2 tokens de la
+    // misma tarjeta generados en simultaneo (Promise.all), y se usa el
+    // SEGUNDO -- el mismo que en el flujo real se manda para la
+    // suscripcion despues de que el primero ya cobro el pago unico. Un
+    // solo token (probado antes) SI funciono, asi que esto aisla si el
+    // problema esta en generar/usar dos tokens a la vez.
+    const tokenData = { cardholderName, identificationType: docType, identificationNumber: docNumber };
+    const [, subscriptionTokenRes] = await Promise.all([
+      mpInstance.fields.createCardToken(tokenData),
+      mpInstance.fields.createCardToken(tokenData)
+    ]);
+    const tokenRes = subscriptionTokenRes;
 
-    showMpCheckoutStatus('info', '[DEBUG] Probando la creación de la suscripción en Mercado Pago...');
+    showMpCheckoutStatus('info', '[DEBUG] Probando la creación de la suscripción en Mercado Pago (con el 2do de 2 tokens simultáneos)...');
 
     const webhookURL = localStorage.getItem('google-webhook-url') || localStorage.getItem('apps-script-url') || DEFAULT_WEBHOOK_URL;
     const res = await fetch(webhookURL, {
