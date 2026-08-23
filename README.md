@@ -2,6 +2,12 @@
 
 Plataforma web interactiva, embudo de ventas de alta conversión y Progressive Web App (PWA) para la reserva de diagnósticos estratégicos e implementación de Agentes de IA y Automatizaciones Empresariales.
 
+> **Backend**: el sitio en vivo llama a **`esteban-ia-backend`** (Node.js/Express en Railway,
+> repo separado `EstebanSerna/esteban-ia-backend`) — reservas/Calendar, proxy de chat, checkout de
+> Mercado Pago y notificaciones. El `google-apps-script.js` de este repo es la versión anterior,
+> se mantiene desplegada solo como respaldo, el sitio ya no la usa. Ver `CLAUDE.md` para el detalle
+> de la arquitectura y el README del otro repo para configurar el backend real.
+
 ---
 
 ## 🌟 Características Principales
@@ -48,9 +54,12 @@ Plataforma web interactiva, embudo de ventas de alta conversión y Progressive W
 
 ---
 
-## ⚙️ Configuración del Backend (Google Apps Script)
+## ⚙️ Configuración del Backend (respaldo — Google Apps Script)
 
- Para habilitar la creación automática de eventos en Google Calendar:
+> Esto configura el backend de **respaldo**, no el que usa el sitio en vivo. Para el backend real
+> (Railway), ve al repo `esteban-ia-backend` y sigue su README.
+
+ Para habilitar la creación automática de eventos en Google Calendar en el respaldo:
 
 1. Ingresa a [Google Apps Script](https://script.google.com/).
 2. Crea un **Nuevo proyecto**.

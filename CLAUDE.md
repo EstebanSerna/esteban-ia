@@ -1,7 +1,9 @@
 # CLAUDE.md - Esteban Serna | IA & Automatizaciones Empresariales
 
 ## Project Overview
-**Esteban IA** (`esteban-ia`) is a high-converting web platform and Progressive Web App (PWA) designed for **Esteban Serna** — AI & Enterprise Automation Specialist. The platform serves as an interactive sales funnel, service showcase, ROI savings calculator, interactive AI simulator, and diagnostic booking engine, backed by a Google Apps Script webhook for Calendar events + a Claude chat proxy.
+**Esteban IA** (`esteban-ia`) is a high-converting web platform and Progressive Web App (PWA) designed for **Esteban Serna** — AI & Enterprise Automation Specialist. The platform serves as an interactive sales funnel, service showcase, ROI savings calculator, interactive AI simulator, diagnostic booking engine, and embedded Mercado Pago checkout (one-time implementation fee + recurring monthly subscription, charged with a single card entry).
+
+**Backend**: the live backend is a separate Node.js/Express project — **`esteban-ia-backend`** (repo `EstebanSerna/esteban-ia-backend`, deployed on Railway, auto-deploys on push to `main`). It replaced the original Google Apps Script backend (`google-apps-script.js`, still in this repo and still deployed, kept only as a documented fallback — the live site does not call it). If you're working on backend logic (chat proxy, bookings/Calendar, Mercado Pago checkout, notifications), edit the Railway project, not `google-apps-script.js`, unless explicitly asked to update the fallback too.
 
 ---
 
@@ -17,8 +19,15 @@ To launch the project locally:
 - **Frontend**: Pure HTML5, Vanilla CSS3 (Custom Properties & Glassmorphism), ES6+ JavaScript.
 - **Visual Effects**: Canvas 2D Quantum Particle System (`#quantum-canvas`).
 - **PWA**: Web App Manifest (`manifest.json`) + Service Worker (`sw.js`).
-- **Backend / Integrations**: Google Apps Script (`google-apps-script.js`) — a single webhook that
-  handles both Google Calendar auto-booking and the Claude chat proxy for the AI simulator.
+- **Backend / Integrations** (live): `esteban-ia-backend` on Railway (Node.js/Express) — a single
+  `POST /` endpoint that handles Calendar bookings, the Claude chat proxy, the Mercado Pago
+  checkout (one-time payment + subscription), and the Mercado Pago Webhook. Google Calendar via a
+  service account (not the Apps Script owner's own account); email via Resend
+  (`info@esteban-serna.com`); WhatsApp welcome message via the Meta Cloud API, reusing the same
+  WhatsApp Business number as the separate `whatsapp-assistant` Railway project (currently
+  mis-configured — see `src/services/whatsapp.js` in that repo).
+- **Backend / Integrations** (fallback, unused by the live site): `google-apps-script.js` in this
+  repo — same logic, kept deployed in case Railway goes down.
 
 ---
 
@@ -31,7 +40,7 @@ esteban-ia/
 │   └── styles.css          # Design system, CSS variables, glassmorphism, responsive grid
 ├── js/
 │   └── app.js              # Quantum canvas, navigation, ROI calculator, AI simulator, booking form logic
-├── google-apps-script.js   # Google Apps Script (GAS) Web App backend for Calendar events + Claude chat proxy
+├── google-apps-script.js   # FALLBACK backend (unused by the live site, see Backend section above)
 ├── manifest.json           # Progressive Web App (PWA) manifest
 ├── sw.js                   # Service Worker for offline caching & PWA support
 ├── images/                 # Hero background, photos, and PWA app icons (192x192, 512x512)
@@ -75,27 +84,46 @@ esteban-ia/
 - **Submission Flow**: Dispatches the JSON payload straight to the Google Apps Script Web App
   (`executeDirectBooking()` in `app.js`), which creates the Calendar event server-side.
 
-### 5. Google Calendar & Webhook Integration (`google-apps-script.js` & `calendar.js`)
-- **Backend Handler (`google-apps-script.js`)**:
-  - Implements `doPost(e)` with CORS headers (`Access-Control-Allow-Origin: *`).
-  - Routes on `data.action`: `"chat"` → `handleChatDemo()` (Claude proxy, see below); anything
-    else → the existing booking flow (kept as the default so old clients without `action` still work).
-  - Booking flow parses dates formatted in Spanish (e.g., `"18 de Julio de 2026"`, `"10:30 AM"`).
-  - Automatically creates a Google Calendar event with duration dynamically set by service type (30, 45, or 60 min).
-  - Sends email invitation to client (`guests: data.email`).
-- **Chat Proxy (`handleChatDemo()`)**:
-  - Reads `ANTHROPIC_API_KEY` from `PropertiesService.getScriptProperties()` — set manually in the
-    Apps Script editor UI, never committed to this repo.
-  - Calls `https://api.anthropic.com/v1/messages` server-side with model `claude-haiku-4-5-20251001`.
-  - `isWithinChatRateLimit_()` caps total chat calls to `CHAT_RATE_LIMIT_PER_MINUTE` (20) per minute
-    across all visitors via `CacheService`, since the endpoint is publicly reachable with no auth.
-- **Client Webhook Config**:
-  - `DEFAULT_WEBHOOK_URL` in `app.js` is the public `/exec` URL — it's not a secret (any browser is
-    meant to call it directly), so it ships as a hardcoded default. `localStorage` keys
-    `google-webhook-url` / `apps-script-url` can still override it if a new Apps Script version is
-    ever deployed under a different URL.
-- **Payment links**: `planDetailsMap` in `app.js` holds the Mercado Pago default link per plan, and
-  `G66_LINK_DEFAULT` the Global 66 one — update these directly in code when real checkout links exist.
+### 5. Backend (`esteban-ia-backend` on Railway) & Mercado Pago Checkout
+- **Single endpoint (`POST /`)**: routes on `data.action` (`"chat"`, `"mp_checkout"`,
+  `"mp_test_subscription"` — a no-charge diagnostic tool) or on `data.type === "payment"` (a
+  Mercado Pago Webhook call) — anything else falls through to the booking flow, mirroring the old
+  Apps Script `doPost(e)` dispatch so the frontend didn't need to change shape.
+- **Body parsing**: the frontend deliberately sends `Content-Type: text/plain` (avoids a CORS
+  preflight, inherited from the Apps Script era) — `express.json({ type: () => true })` parses it
+  as JSON regardless of the declared content type. Don't "fix" this back to the express default.
+- **Checkout (`src/services/mercadopago.js`)**: uses the **official `mercadopago` Node SDK**
+  (`MercadoPagoConfig`/`Payment`/`PreApproval`) instead of hand-built HTTP calls. Charges the
+  one-time implementation fee, then — if approved — activates the monthly subscription with a
+  SECOND card token from the same card entry (a Mercado Pago card token is single-use). The
+  subscription's `reason` field must stay ≤ 60 characters (`buildSubscriptionReason()`) — Mercado
+  Pago silently rejects longer ones with `"reason has more than 60 characters"`, which was the
+  root cause of a long debugging session; don't remove that truncation.
+- **Checkout data survives without a database**: the second token and the rest of the checkout
+  data (plan, WhatsApp, etc.) are stored in the payment's own `metadata` field at creation time.
+  If the payment resolves as `"pending"`/`"in_process"`, the Mercado Pago Webhook later re-fetches
+  that same payment by id and reads `metadata` to finish activating the subscription — no separate
+  persistence layer.
+- **Webhook race condition**: Mercado Pago can call the Webhook almost simultaneously with the
+  synchronous checkout response. `processedWebhookPaymentIds` (in-memory `Set` in `server.js`) is
+  marked immediately once a payment resolves instantly (not left pending), so the Webhook doesn't
+  also try to activate the same subscription in parallel with the same (single-use) token.
+- **Google Calendar**: via a **service account**, not the developer's own Google account — see
+  `src/services/calendar.js` and that repo's README for setup (share the target Calendar with the
+  service account's `client_email`, "Make changes to events" permission).
+- **Notifications (`src/services/notifications.js`)**: on a completed sale, sends (a) an internal
+  email to `ESTEBAN_EMAIL` via Resend, (b) an HTML welcome email to the customer (same sender,
+  `RESEND_FROM`), and (c) attempts a WhatsApp welcome message via the Meta Cloud API — the latter
+  needs a Meta-approved message template for a cold outbound message; a free-form text attempt is
+  used for now and fails silently (logged, non-blocking) until that's set up.
+- **Client webhook config**: `DEFAULT_WEBHOOK_URL` in `app.js` is the Railway service's public URL
+  — not a secret, ships as a hardcoded default, same pattern as before. `localStorage` keys
+  `google-webhook-url` / `apps-script-url` can still override it for testing against a different
+  backend.
+- **Payment amounts**: `planDetailsMap` in `app.js` holds `oneTimeAmount`/`monthlyAmount` per plan
+  (COP, no decimals) — update these directly in code for real price changes. There is intentionally
+  no "pay separately" fallback link — the embedded checkout is the only way to pay, so implementation
+  + subscription are always bought together.
 
 ---
 
@@ -120,10 +148,17 @@ esteban-ia/
 ## 💡 Guidelines for Claude Code Modifications
 
 1. **Vanilla Architecture**: Keep code native HTML5/CSS3/Vanilla JS. Do not introduce large build tools (Webpack, Vite, React) unless explicitly requested.
-2. **CORS Safety**: When modifying `google-apps-script.js`, ensure `doOptions(e)` and `Access-Control-Allow-Origin` headers remain untouched for Web App deployment.
-3. **State Management**: There is no admin/login area anymore — the site is a single public page.
+2. **Two separate repos**: this repo (`esteban-ia`) is the static frontend, deployed via GitHub
+   Actions/SFTP. Backend logic lives in the sibling folder/repo `esteban-ia-backend`
+   (`EstebanSerna/esteban-ia-backend` on GitHub, deployed on Railway) — edit that repo for chat
+   proxy, bookings, or checkout changes, not `google-apps-script.js` here (that one's the unused
+   fallback — see Backend section above).
+3. **CORS Safety**: `google-apps-script.js`'s `doOptions(e)`/CORS headers stay untouched if you
+   ever do edit the fallback. In `esteban-ia-backend`, don't remove the `type: () => true` option
+   on `express.json()` — the frontend's `text/plain` trick depends on it.
+4. **State Management**: There is no admin/login area anymore — the site is a single public page.
    `localStorage` is only used to optionally override `DEFAULT_WEBHOOK_URL` (`google-webhook-url` /
    `apps-script-url` keys). Don't reintroduce a credentials/config modal for things that can just be
-   hardcoded defaults (webhook URL, payment links) — see the git history around "quitemos el Acceso"
-   for why that was removed.
-4. **Spanish Language**: UI text, date formatting, and system messages are in Spanish (`es`).
+   hardcoded defaults (webhook URL, payment amounts) — see the git history around "quitemos el
+   Acceso" for why that was removed.
+5. **Spanish Language**: UI text, date formatting, and system messages are in Spanish (`es`).
