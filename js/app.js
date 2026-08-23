@@ -1452,12 +1452,9 @@ function initAISimulator() {
 const planDetailsMap = {
   'Asistente Basico WhatsApp': {
     title: 'Asistente para Redes Sociales & WhatsApp',
-    // TEMPORAL: monto bajado para probar la "Calidad de integracion" de
-    // Mercado Pago con un Payment ID nuevo (generado con el codigo ya
-    // corregido). Revertir a $1.950.000 / $330.000 despues de la prueba.
-    priceText: 'Inversión: <strong>$50.000 COP</strong> + $5.000 COP/mes',
-    oneTimeAmount: 50000,
-    monthlyAmount: 5000
+    priceText: 'Inversión: <strong>$1.950.000 COP</strong> + $330.000 COP/mes',
+    oneTimeAmount: 1950000,
+    monthlyAmount: 330000
   },
   'Asistente Experto Empresa': {
     title: 'Asistente Experto en tu Empresa',
