@@ -36,6 +36,7 @@
 const ESTEBAN_EMAIL = "esteban.serna.garcia@gmail.com"; // Reemplaza por tu correo real si es diferente
 const CHAT_RATE_LIMIT_PER_MINUTE = 20; // Maximo de mensajes de chat aceptados por minuto (para todos los visitantes juntos)
 const CHECKOUT_RATE_LIMIT_PER_MINUTE = 10; // Maximo de intentos de pago aceptados por minuto (para todos los visitantes juntos)
+const SUBSCRIPTION_FREE_TRIAL_DAYS = 30; // El pago unico de hoy cubre la implementacion; la mensualidad empieza a cobrarse este numero de dias despues
 
 function doPost(e) {
   try {
@@ -263,7 +264,11 @@ function handleMercadoPagoCheckout(data) {
       });
     }
 
-    // 2) Pago aprobado -> activar la suscripción mensual con el SEGUNDO token
+    // 2) Pago aprobado -> activar la suscripción mensual con el SEGUNDO token.
+    // La suscripción queda autorizada desde ya, pero el primer cobro
+    // mensual no ocurre hasta dentro de SUBSCRIPTION_FREE_TRIAL_DAYS
+    // (el pago único de hoy ya cubre la implementación).
+    const startDate = new Date(Date.now() + SUBSCRIPTION_FREE_TRIAL_DAYS * 24 * 60 * 60 * 1000);
     const subscriptionBody = {
       payer_email: data.payerEmail,
       card_token_id: data.subscriptionToken,
@@ -274,6 +279,7 @@ function handleMercadoPagoCheckout(data) {
       auto_recurring: {
         frequency: 1,
         frequency_type: "months",
+        start_date: startDate.toISOString(),
         transaction_amount: Number(data.monthlyAmount),
         currency_id: "COP"
       }

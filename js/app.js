@@ -1445,39 +1445,28 @@ function initAISimulator() {
 }
 
 // 10. ELEGANT PAYMENT & BOOKING MODAL HANDLER
-// Links de pago -- actualiza aqui cuando cambien o cuando falten los que
-// todavia estan pendientes (marcados abajo). Ninguno de estos es un dato
-// secreto: son links de cobro publicos de Mercado Pago, pensados para
-// compartirse.
-// Respaldo generico mientras se resuelve el plan de suscripcion que Mercado
-// Pago no dejo crear (Experto y Plataforma) -- lleva a la pagina general de
-// suscripciones en vez de a un plan especifico.
-const MP_SUBSCRIPTION_FALLBACK = 'https://www.mercadopago.com.co/subscriptions#from-section=menu';
-
+// El checkout embebido de Mercado Pago (mas abajo) es la UNICA forma de
+// pagar con tarjeta -- a proposito no hay un link de "pago unico" suelto,
+// para que nunca se pueda pagar la implementacion sin quedar tambien
+// suscrito a la mensualidad.
 const planDetailsMap = {
   'Asistente Basico WhatsApp': {
     title: 'Asistente para Redes Sociales & WhatsApp',
     priceText: 'Inversión: <strong>$1.950.000 COP</strong> + $330.000 COP/mes',
     oneTimeAmount: 1950000,
-    monthlyAmount: 330000,
-    mpOneTimeLink: 'https://mpago.li/1Jqi4t2',
-    mpSubscriptionLink: 'https://mpago.la/2MpLYRR'
+    monthlyAmount: 330000
   },
   'Asistente Experto Empresa': {
     title: 'Asistente Experto en tu Empresa',
     priceText: 'Inversión: <strong>$3.450.000 COP</strong> + $520.000 COP/mes',
     oneTimeAmount: 3450000,
-    monthlyAmount: 520000,
-    mpOneTimeLink: 'https://mpago.li/2vQ8g4n',
-    mpSubscriptionLink: MP_SUBSCRIPTION_FALLBACK // pendiente: plan de suscripcion aun no creado en Mercado Pago
+    monthlyAmount: 520000
   },
   'Sistema Completo Automatico': {
     title: 'Plataforma Empresarial & Página Web IA',
     priceText: 'Inversión: <strong>$5.900.000 COP</strong> + $890.000 COP/mes',
     oneTimeAmount: 5900000,
-    monthlyAmount: 890000,
-    mpOneTimeLink: 'https://mpago.li/2tj9sHf',
-    mpSubscriptionLink: MP_SUBSCRIPTION_FALLBACK // pendiente: plan de suscripcion aun no creado en Mercado Pago
+    monthlyAmount: 890000
   }
 };
 
@@ -1487,9 +1476,6 @@ function openPaymentModal(serviceKey) {
   const modal = document.getElementById('overlay-payment-options');
   const titleEl = document.getElementById('payment-modal-plan-title');
   const priceEl = document.getElementById('payment-modal-plan-price');
-  const mpOneTimeLink = document.getElementById('btn-pay-mercadopago-onetime');
-  const mpSubLink = document.getElementById('btn-pay-mercadopago-subscription');
-  const subDesc = document.getElementById('payment-modal-subscription-desc');
   const bookBtn = document.getElementById('btn-pay-book-first');
 
   const planInfo = planDetailsMap[serviceKey] || planDetailsMap['Asistente Experto Empresa'];
@@ -1498,24 +1484,11 @@ function openPaymentModal(serviceKey) {
   if (titleEl) titleEl.textContent = planInfo.title;
   if (priceEl) priceEl.innerHTML = planInfo.priceText;
 
-  if (mpOneTimeLink) mpOneTimeLink.href = planInfo.mpOneTimeLink;
-  if (mpSubLink) mpSubLink.href = planInfo.mpSubscriptionLink;
-  if (subDesc) {
-    subDesc.textContent = planInfo.mpSubscriptionLink === MP_SUBSCRIPTION_FALLBACK
-      ? 'Plan aún en configuración — te llevamos a Suscripciones de Mercado Pago'
-      : 'Cobro automático mensual de sostenimiento';
-  }
-
-  // Colapsar los datos de Global 66 y el pago por separado cada vez que se abre el modal
+  // Colapsar los datos de Global 66 cada vez que se abre el modal
   const g66Details = document.getElementById('global66-details');
   const g66Icon = document.getElementById('global66-toggle-icon');
   if (g66Details) g66Details.style.display = 'none';
   if (g66Icon) g66Icon.textContent = '▾';
-
-  const mpSepDetails = document.getElementById('mp-separate-details');
-  const mpSepIcon = document.getElementById('mp-separate-toggle-icon');
-  if (mpSepDetails) mpSepDetails.style.display = 'none';
-  if (mpSepIcon) mpSepIcon.textContent = '▾';
 
   // Limpiar el formulario de checkout embebido y su mensaje de estado
   const checkoutForm = document.getElementById('mp-checkout-form');
@@ -1574,18 +1547,6 @@ function initMercadoPagoCheckout() {
       mpDetectedPaymentMethodId = null;
     }
   });
-
-  // Toggle de "pagar por separado en Mercado Pago"
-  const toggleBtn = document.getElementById('btn-toggle-mp-separate');
-  const details = document.getElementById('mp-separate-details');
-  const icon = document.getElementById('mp-separate-toggle-icon');
-  if (toggleBtn && details) {
-    toggleBtn.addEventListener('click', () => {
-      const isOpen = details.style.display === 'flex';
-      details.style.display = isOpen ? 'none' : 'flex';
-      if (icon) icon.textContent = isOpen ? '▾' : '▴';
-    });
-  }
 
   const form = document.getElementById('mp-checkout-form');
   if (form) form.addEventListener('submit', handleMercadoPagoCheckoutSubmit);
@@ -1677,7 +1638,7 @@ async function handleMercadoPagoCheckoutSubmit(e) {
     const data = await res.json();
 
     if (data.success) {
-      showMpCheckoutStatus('success', `✅ ¡Listo! Tu pago fue aprobado y tu suscripción mensual quedó activa. Te enviaremos la confirmación a ${payerEmail}.`);
+      showMpCheckoutStatus('success', `✅ ¡Listo! Tu pago fue aprobado. Tu mensualidad de sostenimiento queda programada para empezar a cobrarse en 30 días — el primer mes corre por nuestra cuenta mientras hacemos la implementación. Te enviaremos la confirmación a ${payerEmail}.`);
       if (form) form.reset();
     } else if (data.paymentApproved && !data.subscriptionActive) {
       showMpCheckoutStatus('warning', '⚠️ Tu pago único se procesó correctamente, pero hubo un problema activando la mensualidad automática. Te contactaremos por WhatsApp para completarla — no te preocupes.');
