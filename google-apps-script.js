@@ -244,6 +244,7 @@ function handleMercadoPagoCheckout(data) {
     // pasa con pagos reales tambien, no solo en sandbox). No se activa la
     // suscripcion todavia -- se espera a que el pago se apruebe de verdad.
     if (paymentResult.status === "in_process" || paymentResult.status === "pending") {
+      notifyPendingPayment_(data, paymentResult);
       return createJsonResponse({
         success: false,
         paymentApproved: false,
@@ -311,8 +312,9 @@ function handleMercadoPagoCheckout(data) {
         {
           description:
             "Pago único: $" + data.oneTimeAmount + " COP\n" +
-            "Suscripción: $" + data.monthlyAmount + " COP/mes\n" +
+            "Suscripción: $" + data.monthlyAmount + " COP/mes (empieza en " + SUBSCRIPTION_FREE_TRIAL_DAYS + " días)\n" +
             "Correo: " + data.payerEmail + "\n" +
+            "WhatsApp: " + (data.payerWhatsapp || "no proporcionado") + "\n" +
             "ID Pago: " + paymentResult.id + "\n" +
             "ID Suscripción: " + subResult.id
         }
@@ -320,6 +322,9 @@ function handleMercadoPagoCheckout(data) {
     } catch (calErr) {
       // No bloquea la respuesta al cliente si falla el registro en calendario
     }
+
+    // Avisar por correo para arrancar la implementacion cuanto antes
+    notifySuccessfulSale_(data, paymentResult, subResult, startDate);
 
     return createJsonResponse({
       success: true,
@@ -367,6 +372,30 @@ function translatePaymentStatusDetail_(statusDetail) {
   return map[statusDetail] || null;
 }
 
+// Notifica por correo cuando una venta se completa de verdad (pago +
+// suscripcion activados) -- esta es la señal para arrancar la implementacion.
+function notifySuccessfulSale_(data, paymentResult, subResult, subscriptionStartDate) {
+  try {
+    MailApp.sendEmail({
+      to: ESTEBAN_EMAIL,
+      subject: "🎉 Nueva venta: " + (data.planTitle || "Plan") + " — " + (data.cardholderName || data.payerEmail),
+      body:
+        "¡Nueva venta confirmada! Ya se puede arrancar la implementación.\n\n" +
+        "Cliente: " + (data.cardholderName || "-") + "\n" +
+        "Correo: " + data.payerEmail + "\n" +
+        "WhatsApp: " + (data.payerWhatsapp || "no proporcionado") + "\n" +
+        "Documento: " + (data.docType || "") + " " + (data.docNumber || "") + "\n\n" +
+        "Plan: " + (data.planTitle || "-") + "\n" +
+        "Pago único cobrado: $" + data.oneTimeAmount + " COP (ID: " + paymentResult.id + ")\n" +
+        "Suscripción mensual: $" + data.monthlyAmount + " COP/mes, primer cobro el " +
+        subscriptionStartDate.toLocaleDateString("es-CO") + " (ID: " + subResult.id + ")\n\n" +
+        "Contáctalo por WhatsApp para coordinar el inicio de la implementación."
+    });
+  } catch (mailErr) {
+    // Si falla el envio del correo no se bloquea el flujo principal
+  }
+}
+
 // Notifica por correo cuando el pago único se cobró pero la suscripción no
 // pudo activarse, para que se pueda completar manualmente con el cliente.
 function notifyPartialCheckoutFailure_(data, paymentResult, subResult) {
@@ -375,10 +404,33 @@ function notifyPartialCheckoutFailure_(data, paymentResult, subResult) {
       to: ESTEBAN_EMAIL,
       subject: "⚠️ Pago cobrado pero suscripción NO activada — " + (data.planTitle || ""),
       body:
-        "Se cobró el pago único a " + data.payerEmail + " (ID de pago: " + paymentResult.id + ") " +
-        "pero la suscripción mensual no se pudo activar.\n\n" +
+        "Se cobró el pago único a " + data.payerEmail + " (WhatsApp: " + (data.payerWhatsapp || "no proporcionado") +
+        ", ID de pago: " + paymentResult.id + ") pero la suscripción mensual no se pudo activar.\n\n" +
         "Detalle de Mercado Pago:\n" + JSON.stringify(subResult, null, 2) + "\n\n" +
         "Contacta al cliente para completar la suscripción manualmente, o reintenta desde el panel de Mercado Pago."
+    });
+  } catch (mailErr) {
+    // Si falla el envio del correo no se bloquea el flujo principal
+  }
+}
+
+// Notifica cuando un pago queda "en revision" (in_process/pending) del lado
+// de Mercado Pago, para que se le pueda hacer seguimiento -- si se aprueba
+// mas tarde, hoy no llega una segunda notificacion automatica (necesitaria
+// un Webhook), asi que conviene revisar el estado manualmente en el panel.
+function notifyPendingPayment_(data, paymentResult) {
+  try {
+    MailApp.sendEmail({
+      to: ESTEBAN_EMAIL,
+      subject: "⏳ Pago en revisión: " + (data.planTitle || "Plan") + " — " + (data.cardholderName || data.payerEmail),
+      body:
+        "Un cliente intentó pagar y el pago quedó \"" + paymentResult.status + "\" (" + (paymentResult.status_detail || "") + ") en revisión de Mercado Pago.\n\n" +
+        "Cliente: " + (data.cardholderName || "-") + "\n" +
+        "Correo: " + data.payerEmail + "\n" +
+        "WhatsApp: " + (data.payerWhatsapp || "no proporcionado") + "\n" +
+        "Plan: " + (data.planTitle || "-") + "\n" +
+        "ID de pago: " + paymentResult.id + "\n\n" +
+        "Revisa el estado en tu panel de Mercado Pago (Actividad) en un rato -- si se aprueba, la suscripción mensual todavía NO quedó activada automáticamente para este caso."
     });
   } catch (mailErr) {
     // Si falla el envio del correo no se bloquea el flujo principal

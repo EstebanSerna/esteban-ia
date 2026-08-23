@@ -1476,7 +1476,6 @@ function openPaymentModal(serviceKey) {
   const modal = document.getElementById('overlay-payment-options');
   const titleEl = document.getElementById('payment-modal-plan-title');
   const priceEl = document.getElementById('payment-modal-plan-price');
-  const bookBtn = document.getElementById('btn-pay-book-first');
 
   const planInfo = planDetailsMap[serviceKey] || planDetailsMap['Asistente Experto Empresa'];
   currentCheckoutServiceKey = planDetailsMap[serviceKey] ? serviceKey : 'Asistente Experto Empresa';
@@ -1484,24 +1483,11 @@ function openPaymentModal(serviceKey) {
   if (titleEl) titleEl.textContent = planInfo.title;
   if (priceEl) priceEl.innerHTML = planInfo.priceText;
 
-  // Colapsar los datos de Global 66 cada vez que se abre el modal
-  const g66Details = document.getElementById('global66-details');
-  const g66Icon = document.getElementById('global66-toggle-icon');
-  if (g66Details) g66Details.style.display = 'none';
-  if (g66Icon) g66Icon.textContent = '▾';
-
   // Limpiar el formulario de checkout embebido y su mensaje de estado
   const checkoutForm = document.getElementById('mp-checkout-form');
   if (checkoutForm) checkoutForm.reset();
   const checkoutStatus = document.getElementById('mp-checkout-status');
   if (checkoutStatus) checkoutStatus.style.display = 'none';
-
-  if (bookBtn) {
-    bookBtn.onclick = () => {
-      if (modal) modal.classList.remove('active');
-      selectService(serviceKey);
-    };
-  }
 
   if (modal) modal.classList.add('active');
 }
@@ -1576,13 +1562,14 @@ async function handleMercadoPagoCheckoutSubmit(e) {
   const docType = document.getElementById('mp-doc-type').value;
   const docNumber = document.getElementById('mp-doc-number').value.trim();
   const payerEmail = document.getElementById('mp-payer-email').value.trim();
+  const payerWhatsapp = document.getElementById('mp-payer-whatsapp').value.trim();
 
-  if (!cardholderName || !docNumber || !payerEmail) {
-    showMpCheckoutStatus('error', 'Completa tu nombre, documento y correo antes de pagar.');
+  if (!cardholderName || !docNumber || !payerEmail || !payerWhatsapp) {
+    showMpCheckoutStatus('error', 'Completa tu nombre, documento, correo y WhatsApp antes de pagar.');
     return;
   }
   if (!mpInstance) {
-    showMpCheckoutStatus('error', 'El checkout no cargó correctamente. Usa "pagar por separado" o recarga la página.');
+    showMpCheckoutStatus('error', 'El checkout no cargó correctamente. Recarga la página e intenta de nuevo.');
     return;
   }
   if (!mpDetectedPaymentMethodId) {
@@ -1627,6 +1614,7 @@ async function handleMercadoPagoCheckoutSubmit(e) {
         paymentMethodId: mpDetectedPaymentMethodId,
         issuerId: mpDetectedIssuerId,
         payerEmail,
+        payerWhatsapp,
         docType,
         docNumber,
         cardholderName,
@@ -1636,7 +1624,7 @@ async function handleMercadoPagoCheckoutSubmit(e) {
     const data = await res.json();
 
     if (data.success) {
-      showMpCheckoutStatus('success', `✅ ¡Listo! Tu pago fue aprobado. Tu mensualidad de sostenimiento queda programada para empezar a cobrarse en 30 días — el primer mes corre por nuestra cuenta mientras hacemos la implementación. Te enviaremos la confirmación a ${payerEmail}.`);
+      showMpCheckoutStatus('success', `✅ ¡Listo! Tu pago fue aprobado. Tu mensualidad de sostenimiento queda programada para empezar a cobrarse en 30 días — el primer mes corre por nuestra cuenta mientras hacemos la implementación. Te contactaremos por WhatsApp en breve para arrancar, y te enviamos la confirmación a ${payerEmail}.`);
       if (form) form.reset();
     } else if (data.paymentApproved && !data.subscriptionActive) {
       showMpCheckoutStatus('warning', '⚠️ Tu pago único se procesó correctamente, pero hubo un problema activando la mensualidad automática. Te contactaremos por WhatsApp para completarla — no te preocupes.');
@@ -1647,52 +1635,14 @@ async function handleMercadoPagoCheckoutSubmit(e) {
     }
   } catch (err) {
     console.error('Error en checkout de Mercado Pago:', err);
-    showMpCheckoutStatus('error', '❌ Ocurrió un error inesperado. Intenta de nuevo o usa "pagar por separado".');
+    showMpCheckoutStatus('error', '❌ Ocurrió un error inesperado. Intenta de nuevo en un momento.');
   } finally {
     submitBtn.disabled = false;
     submitBtn.textContent = 'Pagar e Iniciar Suscripción';
   }
 }
 
-// Datos de cuenta ACH de Global 66 (para transferencia en USD). No son
-// credenciales de acceso, son los datos publicos para RECIBIR el pago.
-const GLOBAL66_ACCOUNT_TEXT =
-  'Cuenta ACH (USD) - Global 66\n' +
-  'Titular: Esteban Serna Garcia\n' +
-  'Tipo de cuenta: Checking\n' +
-  'N.º de cuenta: 8339288538\n' +
-  'Routing Number: 026073150\n' +
-  'Banco: Community Federal Savings Bank\n' +
-  'Dirección del banco: 5 Penn Plaza, 14th Floor, New York, NY 10001, US';
-
-function initGlobal66Toggle() {
-  const toggleBtn = document.getElementById('btn-toggle-global66');
-  const details = document.getElementById('global66-details');
-  const icon = document.getElementById('global66-toggle-icon');
-  const copyBtn = document.getElementById('btn-copy-global66');
-  if (!toggleBtn || !details) return;
-
-  toggleBtn.addEventListener('click', () => {
-    const isOpen = details.style.display !== 'none';
-    details.style.display = isOpen ? 'none' : 'block';
-    if (icon) icon.textContent = isOpen ? '▾' : '▴';
-  });
-
-  if (copyBtn) {
-    copyBtn.addEventListener('click', () => {
-      navigator.clipboard.writeText(GLOBAL66_ACCOUNT_TEXT).then(() => {
-        const original = copyBtn.textContent;
-        copyBtn.textContent = '✅ Copiado';
-        setTimeout(() => { copyBtn.textContent = original; }, 2000);
-      }).catch(() => {
-        alert('No se pudo copiar automáticamente. Selecciona el texto manualmente.');
-      });
-    });
-  }
-}
-
 document.addEventListener('DOMContentLoaded', () => {
-  initGlobal66Toggle();
   initMercadoPagoCheckout();
 
   const closePaymentModalBtn = document.getElementById('btn-close-payment-modal');
