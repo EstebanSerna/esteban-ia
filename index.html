@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Esteban Serna | Implementación de IA & Automatizaciones Empresariales</title>
+  
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="Diseño e implementación de Asistentes de IA a la medida, automatizaciones de procesos en Make/n8n y agentes autónomos 24/7 para escalar la operación de tu empresa.">
+  <meta name="author" content="Esteban Serna">
+  
+  <!-- PWA & Apple Web App Meta Tags -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#040405">
+  <meta name="mobile-web-app-capable" content="yes">
+  
+  <!-- iOS support -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Esteban Serna">
+  <link class="pwa-icon" rel="apple-touch-icon" href="images/icon-192.png">
+  
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="css/styles.css">
+  
+  <!-- Google API Client Script for GIS & Google Auth -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+
+  <!-- INTERACTIVE QUANTUM PARTICLES BACKGROUND -->
+  <canvas id="quantum-canvas"></canvas>
+
+  <div class="app-container">
+    
+    <!-- HEADER -->
+    <header class="main-header">
+      <div class="logo-area" id="brand-logo">
+        <div class="logo-icon">ES</div>
+        <span class="logo-text text-gradient">ESTEBAN SERNA</span>
+      </div>
+      
+      <nav class="nav-links" id="nav-links">
+        <a href="#inicio" class="nav-item">Inicio</a>
+        <a href="#servicios" class="nav-item">¿Qué hace la IA?</a>
+        <a href="#calculadora" class="nav-item">Calculadora</a>
+        <a href="#simulador" class="nav-item">Prueba el Chat</a>
+        <a href="#comparativa" class="nav-item">Antes vs Después</a>
+        <a href="#planes" class="nav-item">Servicios</a>
+        <a href="#reservar" class="nav-item">Agendar</a>
+        <button class="nav-btn" id="btn-ia-portal">Acceso</button>
+      </nav>
+
+      <button class="menu-btn" id="mobile-menu-trigger" aria-label="Abrir menú" aria-expanded="false">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line class="menu-icon-line menu-icon-top" x1="3" y1="12" x2="21" y2="12"></line>
+          <line class="menu-icon-line menu-icon-mid" x1="3" y1="6" x2="21" y2="6"></line>
+          <line class="menu-icon-line menu-icon-bottom" x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+    </header>
+
+    <!-- MAIN VIEWS -->
+    <main class="main-content">
+      
+      <!-- PUBLIC CLIENT PORTAL VIEW (AI SALES FUNNEL) -->
+      <div id="public-view">
+        
+        <!-- HERO SECTION -->
+        <section id="inicio" class="section hero-section">
+          <div class="hero-text-content">
+            <div class="tech-badge" style="margin-bottom: 16px;">
+              <span class="status-dot"></span> INTELIGENCIA ARTIFICIAL QUE TRABAJA POR TI 24/7
+            </div>
+            <h1 class="hero-title">Haz que tu negocio atienda clientes, venda y trabaje <span class="text-gradient">en automático las 24 horas del día</span></h1>
+            <p class="hero-description">
+              Diseñamos e implementamos <strong>soluciones avanzadas de Inteligencia Artificial y agentes autónomos</strong> que atienden a tus clientes en Redes Sociales, WhatsApp y Sitio Web, optimizan tus operaciones y multiplican tus ventas de forma constante.
+            </p>
+            <div class="hero-buttons">
+              <a href="#reservar" class="btn btn-primary" onclick="selectService('Diagnostico Gratuito')">Agendar Diagnóstico Gratis (30 min)</a>
+              <a href="#calculadora" class="btn btn-secondary">Calcular mi Ahorro</a>
+            </div>
+
+            <!-- Simple benefit badges -->
+            <div class="tech-badges-grid">
+              <span class="tech-badge">💬 Responde Redes Sociales & WhatsApp 24/7</span>
+              <span class="tech-badge">📅 Agenda Citas en Automático</span>
+              <span class="tech-badge">⚙️ Trabaja de Noche y Festivos</span>
+              <span class="tech-badge">💰 Ahorra Dinero en Sueldos</span>
+              <span class="tech-badge">0% Errores Humanos</span>
+            </div>
+          </div>
+          
+          <div class="hero-image-content">
+            <div class="photo-frame" style="width: 330px; height: 480px; position: relative;">
+              <img src="images/ai_business_hero.jpg" alt="Inteligencia Artificial para tu Negocio" class="hero-photo" style="object-fit: cover;">
+              <div style="position: absolute; bottom: 15px; left: 15px; right: 15px; background: rgba(4,4,5,0.88); backdrop-filter: blur(12px); border: 1px solid var(--gold-border-hover); padding: 12px 16px; border-radius: 12px; font-size: 12px; color: var(--gold-light); display: flex; align-items: center; gap: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.6);">
+                <span class="status-dot"></span> 
+                <div>
+                  <strong style="color: #fff; display: block; font-size: 13px;">Tu Asistente Virtual Activo</strong>
+                  Atendiendo clientes & guardando citas
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- HIGH IMPACT METRICS BAR -->
+        <div class="metrics-bar">
+          <div class="metric-item">
+            <div class="metric-value">3 Seg.</div>
+            <div class="metric-label">Tiempo de Respuesta a Clientes</div>
+          </div>
+          <div class="metric-item">
+            <div class="metric-value">24 / 7</div>
+            <div class="metric-label">Atención de Noche y Festivos</div>
+          </div>
+          <div class="metric-item">
+            <div class="metric-value">0%</div>
+            <div class="metric-label">Errores al Anotar Datos</div>
+          </div>
+          <div class="metric-item">
+            <div class="metric-value">3 Veces</div>
+            <div class="metric-label">Más Clientes Atendidos al Día</div>
+          </div>
+        </div>
+
+        <!-- CORE AI SOLUTIONS SECTION -->
+        <section id="servicios" class="section insights-section">
+          <div class="section-header">
+            <div class="section-tagline">BENEFICIOS DE ALTO IMPACTO EMPRESARIAL</div>
+            <h2 class="section-title text-gradient">¿Qué puede hacer la Inteligencia Artificial por tu negocio?</h2>
+            <p class="section-description">
+              Soluciones estratégicas de alto rendimiento que optimizan la operación de tu empresa desde el primer día:
+            </p>
+          </div>
+
+          <div class="insights-grid">
+            
+            <div class="insight-card">
+              <div class="insight-card-num">01</div>
+              <h3 class="insight-card-title">Atender y Vender por Redes Sociales & WhatsApp 24/7</h3>
+              <p class="insight-card-text">
+                Responde al instante en WhatsApp, Instagram, Facebook y tu Sitio Web las 24 horas, muestra tus precios, resuelve dudas, agenda citas y cierra ventas automáticamente.
+              </p>
+            </div>
+
+            <div class="insight-card">
+              <div class="insight-card-num">02</div>
+              <h3 class="insight-card-title">Hacer las Tareas Aburridas en Automático</h3>
+              <p class="insight-card-text">
+                Pasa la información de tus clientes a planillas de Excel, envía correos de confirmación y emite recibos sin que tengas que mover un solo dedo.
+              </p>
+            </div>
+
+            <div class="insight-card">
+              <div class="insight-card-num">03</div>
+              <h3 class="insight-card-title">Calificar y Filtrar Clientes Potenciales</h3>
+              <p class="insight-card-text">
+                Identifica las necesidades, presupuesto e intención de compra de cada prospecto antes de transferirlo a tu equipo comercial para el cierre.
+              </p>
+            </div>
+
+            <div class="insight-card">
+              <div class="insight-card-num">04</div>
+              <h3 class="insight-card-title">Aprenderse Todo Sobre tu Empresa</h3>
+              <p class="insight-card-text">
+                Leemos tus papeles, listas de precios y datos de productos para entrenar a tu asistente. Responderá con la misma precisión que tú o tu mejor empleado.
+              </p>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ROI CALCULATOR SECTION -->
+        <section id="calculadora" class="section" style="background: rgba(8,8,10,0.5); border-top: 1px solid rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.02);">
+          <div class="section-header">
+            <div class="section-tagline">CALCULADORA ESTRATÉGICA DE ROI</div>
+            <h2 class="section-title text-gradient">Calculadora de Ahorro: Personal Humano vs Asistente IA 24/7</h2>
+            <p class="section-description">
+              Compara el costo real de responder mensajes con personal humano en horario laboral frente a tener cobertura 24/7 ininterrumpida con un Asistente Virtual de IA.
+            </p>
+          </div>
+
+          <div class="roi-calculator-card">
+            
+            <div class="calculator-inputs">
+              <div class="slider-group">
+                <div class="slider-header">
+                  <span class="slider-label">¿Cuántas personas en tu empresa atienden clientes o responden mensajes?</span>
+                  <span class="slider-val-badge" id="val-collab">1 persona</span>
+                </div>
+                <input type="range" class="custom-range-slider" id="input-collab" min="1" max="20" value="1">
+              </div>
+
+              <div class="slider-group">
+                <div class="slider-header">
+                  <span class="slider-label">¿Cuántas horas al día trabaja cada persona en atención al cliente?</span>
+                  <span class="slider-val-badge" id="val-hours">8 horas/día</span>
+                </div>
+                <input type="range" class="custom-range-slider" id="input-hours" min="1" max="12" value="8">
+              </div>
+
+              <div class="slider-group">
+                <div class="slider-header">
+                  <span class="slider-label">Costo hora laboral (Salario Mínimo + Prestaciones en CO ≈ $10.000 COP/h)</span>
+                  <span class="slider-val-badge" id="val-cost">$10.000 COP/h</span>
+                </div>
+                <input type="range" class="custom-range-slider" id="input-cost" min="5000" max="100000" step="1000" value="10000">
+              </div>
+            </div>
+
+            <div class="calculator-results">
+              <div class="results-grid">
+                <div class="result-box" style="border-color: #e74c3c;">
+                  <div class="result-title">👥 Tu Gasto Humano Actual (Horario Limitado)</div>
+                  <div class="result-number" id="res-cost-manual" style="color: #e74c3c; font-size: 22px;">$2.400.000 COP/mes</div>
+                  <span style="font-size: 11px; color: var(--text-muted);" id="sub-cost-manual">1 persona · 8 hrs/día (240 hrs/mes)</span>
+                </div>
+
+                <div class="result-box" style="border-color: #f39c12;">
+                  <div class="result-title">🚨 Cubrir 24 Horas con Personal Humano (3 Turnos)</div>
+                  <div class="result-number" id="res-cost-247-human" style="color: #f39c12; font-size: 22px;">$7.200.000 COP/mes</div>
+                  <span style="font-size: 11px; color: var(--text-muted);" id="sub-cost-247-human">3 empleados rotativos · 24/7 (720 hrs/mes)</span>
+                </div>
+
+                <div class="result-box" style="border-color: var(--success-color); background: rgba(46, 204, 113, 0.06);">
+                  <div class="result-title">🤖 1 Asistente de IA (Cobertura Total 24/7)</div>
+                  <div class="result-number highlight" id="res-cost-ia" style="font-size: 24px;">$520.000 COP/mes</div>
+                  <span style="font-size: 11px; color: var(--gold-light);">1 Agente Virtual · 24/7 Sin pausas ni descansos</span>
+                </div>
+              </div>
+
+              <div style="background: rgba(46, 204, 113, 0.1); border: 1px solid rgba(46, 204, 113, 0.3); border-radius: 10px; padding: 12px; text-align: center;">
+                <span style="font-size: 11px; text-transform: uppercase; color: var(--success-color); font-weight: 700;">🔥 Tu Ahorro Neto al Operar 24/7 con IA:</span>
+                <div style="font-size: 22px; font-weight: 800; color: #fff; margin-top: 2px;" id="res-money">$6.680.000 COP/mes</div>
+              </div>
+
+              <a href="#reservar" class="btn btn-primary" style="width: 100%; text-align: center; justify-content: center;" onclick="selectService('Diagnostico Gratuito')">
+                Quiero Automatizar mi Atención 24/7
+              </a>
+            </div>
+
+          </div>
+
+          <!-- ROI MATH EXPLANATION CARD -->
+          <div class="roi-explanation-card">
+            <div class="roi-explanation-title">
+              💡 Análisis Estratégico de Comparación Financiera:
+            </div>
+            <div class="roi-explanation-steps">
+              <div class="roi-step-item">
+                <div class="roi-step-header">1. Tu Gasto Humano Actual</div>
+                <div class="roi-step-formula" id="formula-manual">1 pers. × 8h/día × 30 días × $10.000 COP = $2.400.000 COP/mes</div>
+                <div class="roi-step-desc">Pagas más de 2.4 millones al mes por atender solo 8 horas al día. Tus clientes que escriben de noche o domingos se van con tu competencia.</div>
+              </div>
+              <div class="roi-step-item">
+                <div class="roi-step-header">2. El Costo de Cubrir 24/7 con Humanos</div>
+                <div class="roi-step-formula" id="formula-human-247">3 turnos × 8h × 30 días × $10.000 COP = $7.200.000 COP/mes</div>
+                <div class="roi-step-desc">Para atender 24 horas continuas necesitarías contratar 3 empleados rotativos en turnos nocturnos con recargos y prestaciones.</div>
+              </div>
+              <div class="roi-step-item">
+                <div class="roi-step-header">3. La Oportunidad con 1 Asistente IA</div>
+                <div class="roi-step-formula" id="formula-roi">1 Asistente IA = $520.000 COP/mes vs $7.200.000 COP humano</div>
+                <div class="roi-step-desc">1 solo Asistente de IA trabaja 720 horas al mes en automático, atiende cientos de clientes simultáneos y te ahorra hasta un 92% en operación 24/7.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- AI LIVE DEMO BUILDER & INTERACTIVE CHAT SECTION -->
+        <section id="simulador" class="section">
+          <div class="section-header">
+            <div class="section-tagline">PRUEBA EN VIVO</div>
+            <h2 class="section-title text-gradient">Prueba un Chat de IA en Vivo para tu Negocio</h2>
+            <p class="section-description">
+              Escribe el nombre de tu empresa abajo y prueba cómo respondería tu propio asistente virtual a tus clientes.
+            </p>
+          </div>
+
+          <!-- DEMO CONFIGURATOR BUILDER FORM -->
+          <div class="demo-builder-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 6px;">
+              <div class="demo-builder-title" style="margin-bottom: 0;">Paso 1: Pon los datos de tu empresa para la prueba</div>
+              <span class="tech-badge" id="demo-category-badge" style="font-size: 11px; padding: 4px 12px; border-color: var(--gold-primary); color: var(--gold-light);">👓 Examen de la Vista & Lentes (Citas)</span>
+            </div>
+            <div class="demo-builder-subtitle">Selecciona una plantilla rápida o escribe los datos de tu negocio:</div>
+
+            <div class="demo-template-pills">
+              <button class="demo-template-btn" onclick="applyDemoPreset('barberia')">💈 Barbería & Peluquería</button>
+              <button class="demo-template-btn" onclick="applyDemoPreset('odontologia')">🦷 Clínica Odontológica</button>
+              <button class="demo-template-btn" onclick="applyDemoPreset('optica')">👓 Óptica & Salud Visual</button>
+              <button class="demo-template-btn" onclick="applyDemoPreset('inmobiliaria')">🏢 Inmobiliaria</button>
+              <button class="demo-template-btn" onclick="applyDemoPreset('ecommerce')">🛒 Tienda de Moda / E-commerce</button>
+              <button class="demo-template-btn" onclick="applyDemoPreset('restaurante')">🍕 Restaurante & Gastronomía</button>
+              <button class="demo-template-btn" onclick="applyDemoPreset('taller')">🚗 Taller Automotriz</button>
+              <button class="demo-template-btn" onclick="applyDemoPreset('abogados')">💼 Abogados & Consultoría</button>
+              <button class="demo-template-btn" onclick="applyDemoPreset('veterinaria')">🐾 Veterinaria & Mascotas</button>
+              <button class="demo-template-btn" onclick="applyDemoPreset('gimnasio')">🏋️ Gimnasio & Fitness</button>
+            </div>
+
+            <div class="demo-inputs-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px;">
+              <div>
+                <label class="form-label" style="font-size: 12px; color: var(--gold-light);">🤖 Nombre de tu Asistente Virtual</label>
+                <input type="text" class="demo-input-field" id="demo-bot-name" value="Valentina" placeholder="Ej. Valentina, Sofi, Carlos">
+              </div>
+              <div>
+                <label class="form-label" style="font-size: 12px; color: var(--gold-light);">🏢 Nombre de tu Empresa / Negocio</label>
+                <input type="text" class="demo-input-field" id="demo-company-name" value="Óptica Visión Clara" placeholder="Ej. Óptica Visión Clara">
+              </div>
+              <div>
+                <label class="form-label" style="font-size: 12px;">🕒 Horarios de Atención</label>
+                <input type="text" class="demo-input-field" id="demo-hours" value="Lunes a Sábado de 9:00 AM a 7:00 PM (Jornada Continua)">
+              </div>
+              <div>
+                <label class="form-label" style="font-size: 12px;">📍 Ubicación / Dirección</label>
+                <input type="text" class="demo-input-field" id="demo-location" value="Centro Comercial Santa Fe, Local 215, Medellín">
+              </div>
+
+              <!-- DYNAMIC CATALOG OF PRODUCTS / SERVICES WITH PRICES -->
+              <div style="grid-column: 1 / -1; background: rgba(255,255,255,0.02); border: 1px solid rgba(212,175,55,0.15); padding: 14px; border-radius: 10px;">
+                <label class="form-label" id="demo-catalog-label" style="font-size: 12px; font-weight: 700; color: var(--gold-primary); margin-bottom: 10px; display: block;">
+                  👓 Catálogo de Productos y Servicios de Óptica (Precios COP):
+                </label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                  <input type="text" class="demo-input-field" id="demo-prod1-name" value="1. Examen Computarizado de Optometría" placeholder="Producto/Servicio 1">
+                  <input type="text" class="demo-input-field" id="demo-prod1-price" value="GRATIS (por compra de lentes)" placeholder="Precio 1">
+
+                  <input type="text" class="demo-input-field" id="demo-prod2-name" value="2. Lentes Monofocales Antirreflejo Blue Protect" placeholder="Producto/Servicio 2">
+                  <input type="text" class="demo-input-field" id="demo-prod2-price" value="$140.000 COP" placeholder="Precio 2">
+
+                  <input type="text" class="demo-input-field" id="demo-prod3-name" value="3. Lentes Progresivos Digitales HD (Bifocales)" placeholder="Producto/Servicio 3">
+                  <input type="text" class="demo-input-field" id="demo-prod3-price" value="$290.000 COP" placeholder="Precio 3">
+
+                  <input type="text" class="demo-input-field" id="demo-prod4-name" value="4. Lentes Fotocromáticos Transition (Sol/Sombra)" placeholder="Producto/Servicio 4">
+                  <input type="text" class="demo-input-field" id="demo-prod4-price" value="$220.000 COP" placeholder="Precio 4">
+
+                  <input type="text" class="demo-input-field" id="demo-prod5-name" value="5. Monturas de Marca & Gafas de Sol UV400" placeholder="Producto/Servicio 5">
+                  <input type="text" class="demo-input-field" id="demo-prod5-price" value="$180.000 COP" placeholder="Precio 5">
+                </div>
+              </div>
+
+              <div style="grid-column: 1 / -1;">
+                <label class="form-label" id="demo-info-label" style="font-size: 12px;">📋 Políticas de Entrega, Garantía & Medios de Pago</label>
+                <input type="text" class="demo-input-field" id="demo-company-info" value="Entregamos tus lentes formulados en 24 a 48 horas con garantía de 1 año en la montura. Recibimos Tarjetas, Nequi y Addi.">
+              </div>
+
+              <!-- AI ENGINE PROVIDER & API KEY SELECTION -->
+              <div style="grid-column: 1 / -1; background: rgba(212,175,55,0.04); border: 1px dashed rgba(212,175,55,0.25); padding: 12px 14px; border-radius: 10px; margin-top: 4px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="const p=document.getElementById('ai-config-panel'); p.style.display=p.style.display==='none'?'grid':'none';">
+                  <span style="font-size: 12px; font-weight: 700; color: var(--gold-light);">🤖 Motor de Inteligencia Artificial (IA Real)</span>
+                  <span style="font-size: 11px; color: var(--gold-primary); border: 1px solid rgba(212,175,55,0.3); padding: 2px 8px; border-radius: 6px; background: rgba(212,175,55,0.1);">
+                    ⚡ IA Conectada (Gratis o con tu Key) ▼
+                  </span>
+                </div>
+                <div id="ai-config-panel" style="margin-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                  <div>
+                    <label class="form-label" style="font-size: 11px; color: var(--gold-light);">Proveedor de Modelo IA</label>
+                    <select class="demo-input-field" id="demo-ai-provider" style="font-size: 12px; height: 38px; background: #0c0c10; color: #fff;">
+                      <option value="pollinations">🌐 Motor IA Real Gratis (Incluido / Sin Key)</option>
+                      <option value="claude">🔑 Anthropic Claude 3.5 (Claude API)</option>
+                      <option value="openai">🔑 OpenAI (GPT-4o-mini)</option>
+                      <option value="gemini">🔑 Google Gemini 1.5 Flash</option>
+                      <option value="groq">🔑 Groq API (Llama 3.3 70B)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="form-label" style="font-size: 11px; color: var(--text-secondary);">API Key Personal (Opcional)</label>
+                    <input type="password" class="demo-input-field" id="demo-ai-key" placeholder="Pegar sk-proj-... / AIzaSy... (Opcional)" style="font-size: 12px; height: 38px;">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button class="btn btn-primary" id="btn-generate-ai-demo" style="width: 100%; text-align: center; justify-content: center;">
+              ⚡ Activar e Iniciar Chat de Prueba con mi Asistente Virtual
+            </button>
+          </div>
+
+          <!-- LIVE CHAT WIDGET -->
+          <div class="ai-simulator-card">
+            <div class="ai-sim-header">
+              <div class="ai-sim-agent-info">
+                <div class="ai-sim-avatar" id="sim-avatar-text">AI</div>
+                <div class="ai-sim-title-group">
+                  <h4 id="sim-bot-title">Agente Virtual Inmobiliaria Valora</h4>
+                  <p id="sim-bot-status">● En línea · Listo para responder a tus clientes</p>
+                </div>
+              </div>
+              <span class="tech-badge" style="font-size: 11px; padding: 4px 12px;">Prueba en Vivo</span>
+            </div>
+
+            <div class="ai-sim-pills-bar" id="sim-preset-pills">
+              <button class="sim-pill-btn active" onclick="sendQuickPrompt('servicios')">💬 ¿Qué productos/servicios ofrecen?</button>
+              <button class="sim-pill-btn" onclick="sendQuickPrompt('precios')">💵 ¿Cuáles son los precios?</button>
+              <button class="sim-pill-btn" onclick="sendQuickPrompt('agendar')">📅 Quiero agendar una cita</button>
+            </div>
+
+            <div class="ai-sim-chat-area" id="sim-chat-window">
+              <!-- Dynamically populated dialogue -->
+            </div>
+
+            <div class="chat-input-bar">
+              <input type="text" id="sim-user-input" placeholder="Escribe cualquier pregunta para probar tu asistente en vivo..." onkeypress="if(event.key==='Enter') handleUserChatMessage()">
+              <button class="chat-send-btn" id="sim-send-btn" onclick="handleUserChatMessage()">Enviar</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- BEFORE VS AFTER COMPARISON SECTION -->
+        <section id="comparativa" class="section" style="background-color: var(--bg-secondary);">
+          <div class="section-header">
+            <div class="section-tagline">EL CAMBIO EVIDENTE</div>
+            <h2 class="section-title text-gradient">Tu Negocio: Antes vs Después de la IA</h2>
+            <p class="section-description">
+              Mira la diferencia entre seguir trabajando a la antigua o poner la Inteligencia Artificial a tu favor:
+            </p>
+          </div>
+
+          <div class="comparison-grid">
+            
+            <div class="comp-card before">
+              <span class="comp-tag">❌ Como Trabajas Hoy (A la Antigua)</span>
+              <h3 class="comp-title">Sin Inteligencia Artificial</h3>
+              <ul class="comp-list">
+                <li class="comp-item">
+                  <span class="comp-item-icon">✕</span>
+                  <span><strong>Atención lenta:</strong> Te demoras horas en responder tus Redes Sociales o WhatsApp y el cliente le compra a la competencia.</span>
+                </li>
+                <li class="comp-item">
+                  <span class="comp-item-icon">✕</span>
+                  <span><strong>Pérdida de clientes:</strong> Nadie atiende de noche, en festivos o fines de semana.</span>
+                </li>
+                <li class="comp-item">
+                  <span class="comp-item-icon">✕</span>
+                  <span><strong>Personal cansado:</strong> Tu equipo vive agotado respondiendo las mismas 5 preguntas todo el día.</span>
+                </li>
+                <li class="comp-item">
+                  <span class="comp-item-icon">✕</span>
+                  <span><strong>Errores de anotación:</strong> Se olvidan citas o se escriben mal los datos de los clientes.</span>
+                </li>
+                <li class="comp-item">
+                  <span class="comp-item-icon">✕</span>
+                  <span><strong>Costos altos:</strong> Para atender más clientes tienes que contratar más empleados y pagar más sueldos.</span>
+                </li>
+              </ul>
+            </div>
+
+            <div class="comp-card after">
+              <span class="comp-tag">⚡ Con tu Asistente de IA (En Automático)</span>
+              <h3 class="comp-title text-gradient">Con Esteban Serna IA</h3>
+              <ul class="comp-list">
+                <li class="comp-item">
+                  <span class="comp-item-icon">✓</span>
+                  <span><strong>Respuesta instantánea:</strong> Responde en menos de 3 segundos, siempre amable y atento.</span>
+                </li>
+                <li class="comp-item">
+                  <span class="comp-item-icon">✓</span>
+                  <span><strong>Ventas 24/7:</strong> Vendes y agendas citas a las 11:00 PM o un domingo mientras descansas.</span>
+                </li>
+                <li class="comp-item">
+                  <span class="comp-item-icon">✓</span>
+                  <span><strong>Equipo tranquilo:</strong> Tú y tu equipo quedan libres para enfocarse en vender y hacer crecer la empresa.</span>
+                </li>
+                <li class="comp-item">
+                  <span class="comp-item-icon">✓</span>
+                  <span><strong>Cero errores:</strong> Todo se guarda ordenado automáticamente sin cometer fallos.</span>
+                </li>
+                <li class="comp-item">
+                  <span class="comp-item-icon">✓</span>
+                  <span><strong>Atención ilimitada:</strong> Puedes atender 10 o 10,000 clientes al tiempo sin gastar más dinero.</span>
+                </li>
+              </ul>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- VALUE LADDER / PACKAGES SECTION -->
+        <section id="planes" class="section">
+          <div class="section-header">
+            <div class="section-tagline">INVERSIÓN ESTRATÉGICA</div>
+            <h2 class="section-title text-gradient">Planes de Automatización para tu Empresa</h2>
+            <p class="section-description">
+              Soluciones diseñadas a la medida según la escala y visión de crecimiento de tu empresa:
+            </p>
+          </div>
+          
+          <div class="value-ladder-grid">
+            
+            <!-- Tier 1: DIAGNÓSTICO GRATIS -->
+            <div class="price-card free-featured">
+              <span class="badge-free">Paso Inicial</span>
+              <div class="price-header">
+                <h3 class="price-package-name text-gradient">Diagnóstico Gratis</h3>
+              </div>
+              <div class="price-details">
+                <span class="price-amount">$0</span>
+                <span class="price-unit">COP</span>
+              </div>
+              <ul class="price-features-list">
+                <li class="price-feature-item">
+                  <span class="price-feature-icon">💬</span>
+                  <span class="price-feature-text">1 Sesión por Zoom (30 min)</span>
+                </li>
+                <li class="price-feature-item">
+                  <span class="price-feature-icon">🔍</span>
+                  <span class="price-feature-text">Diagnóstico de Tareas Repetitivas</span>
+                </li>
+                <li class="price-feature-item">
+                  <span class="price-feature-icon">🗺️</span>
+                  <span class="price-feature-text">Mapa Estratégico de Asistentes IA</span>
+                </li>
+              </ul>
+              <a href="#reservar" class="price-cta-btn primary" onclick="selectService('Diagnostico Gratuito')">Agendar Diagnóstico Gratis</a>
+            </div>
+
+            <!-- Tier 2: ASISTENTE DE REDES SOCIALES & WHATSAPP -->
+            <div class="price-card">
+              <div class="price-header">
+                <h3 class="price-package-name">Asistente para Redes Sociales & WhatsApp</h3>
+              </div>
+              <div class="price-details" style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px;">
+                <div>
+                  <span style="text-decoration: line-through; opacity: 0.45; font-size: 16px; margin-right: 6px; color: #fff;">$2.800.000</span>
+                  <span class="price-amount" style="font-size: 26px;">$1.950.000</span>
+                  <span class="price-unit">COP Único</span>
+                </div>
+                <div style="font-size: 13px; color: var(--gold-light); font-weight: 600;">
+                  + $330.000 COP/mes Sostenimiento & Servidores
+                </div>
+                <span class="saving-badge" style="margin-top: 4px;">🔥 Ahorras $850.000 COP</span>
+              </div>
+              <ul class="price-features-list" style="margin-top: 15px;">
+                <li class="price-feature-item">
+                  <span class="price-feature-icon">💬</span>
+                  <span class="price-feature-text">1 Asistente IA para Redes Sociales, WhatsApp o Web</span>
+                </li>
+                <li class="price-feature-item">
+                  <span class="price-feature-icon">📋</span>
+                  <span class="price-feature-text">Respuestas de Catálogo & Precios</span>
+                </li>
+                <li class="price-feature-item">
+                  <span class="price-feature-icon">📊</span>
+                  <span class="price-feature-text">Captura de Clientes en Google Sheets</span>
+                </li>
+                <li class="price-feature-item">
+                  <span class="price-feature-icon">⚡</span>
+                  <span class="price-feature-text">Alertas Directas a tu WhatsApp o Móvil</span>
+                </li>
+                <li class="price-feature-item bonus">
+                  <span class="price-feature-icon bonus-icon">★</span>
+                  <span class="price-feature-text">INCLUYE: Sostenimiento & Ajustes</span>
+                </li>
+              </ul>
+              <a href="#reservar" class="price-cta-btn secondary" onclick="openPaymentModal('Asistente Basico WhatsApp')">Elegir Asistente Básico</a>
+            </div>
+
+            <!-- Tier 3: ASISTENTE EXPERTO EN TU EMPRESA -->
+            <div class="price-card" style="border-color: var(--gold-primary); background: rgba(212, 175, 55, 0.04);">
+              <span class="badge-free" style="background: var(--gold-primary); color: #000; font-weight: 700;">Recomendado · Más Popular</span>
+              <div class="price-header">
+                <h3 class="price-package-name text-gradient">Asistente Experto en tu Empresa</h3>
+              </div>
+              <div class="price-details" style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px;">
+                <div>
+                  <span style="text-decoration: line-through; opacity: 0.45; font-size: 16px; margin-right: 6px; color: #fff;">$4.900.000</span>
+                  <span class="price-amount" style="font-size: 26px;">$3.450.000</span>
+                  <span class="price-unit">COP Único</span>
+                </div>
+                <div style="font-size: 13px; color: var(--gold-light); font-weight: 600;">
+                  + $520.000 COP/mes Sostenimiento & Modificaciones
+                </div>
+                <span class="saving-badge" style="margin-top: 4px;">🔥 Ahorras $1.450.000 COP</span>
+              </div>
+              <ul class="price-features-list" style="margin-top: 15px;">
+                <li class="price-feature-item">
+                  <span class="price-feature-icon">🤖</span>
+                  <span class="price-feature-text">Asistente Experto IA con Base RAG</span>
+                </li>
+                <li class="price-feature-item">
+                  <span class="price-feature-icon">📱</span>
+                  <span class="price-feature-text">Omnicanal: WhatsApp, Instagram & Web</span>
+                </li>
+                <li class="price-feature-item">
+                  <span class="price-feature-icon">📅</span>
+                  <span class="price-feature-text">Agendamiento Automático de Citas</span>
+                </li>
+                <li class="price-feature-item">
+                  <span class="price-feature-icon">🎯</span>
+                  <span class="price-feature-text">Calificación Inteligente de Prospectos</span>
+                </li>
+                <li class="price-feature-item bonus">
+                  <span class="price-feature-icon bonus-icon">★</span>
+                  <span class="price-feature-text">INCLUYE: Nuevos Productos & Soporte 24/7</span>
+                </li>
+              </ul>
+              <a href="#reservar" class="price-cta-btn primary" onclick="openPaymentModal('Asistente Experto Empresa')">Elegir Asistente Experto</a>
+            </div>
+
+            <!-- Tier 4: ECOSISTEMA DIGITAL & PLATAFORMA IA EMPRESARIAL -->
+            <div class="price-card">
+              <div class="price-header">
+                <h3 class="price-package-name">Plataforma Empresarial & Página Web IA</h3>
+              </div>
+              <div class="price-details" style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px;">
+                <div>
+                  <span style="text-decoration: line-through; opacity: 0.45; font-size: 16px; margin-right: 6px; color: #fff;">$8.500.000</span>
+                  <span class="price-amount" style="font-size: 26px;">$5.900.000</span>
+                  <span class="price-unit">COP Único</span>
+                </div>
+                <div style="font-size: 13px; color: var(--gold-light); font-weight: 600;">
+                  + $890.000 COP/mes Mantenimiento & Métricas
+                </div>
+                <span class="saving-badge" style="margin-top: 4px;">👑 Máximo Valor Empresarial</span>
+              </div>
+              <ul class="price-features-list" style="margin-top: 15px;">
+                <li class="price-feature-item">
+                  <span class="price-feature-icon">🌐</span>
+                  <span class="price-feature-text">Página Web de Alta Conversión</span>
+                </li>
+                <li class="price-feature-item">
+                  <span class="price-feature-icon">🚀</span>
+                  <span class="price-feature-text">Campañas de Marketing Automatizadas</span>
+                </li>
+                <li class="price-feature-item">
+                  <span class="price-feature-icon">🏢</span>
+                  <span class="price-feature-text">Plataforma Empresarial a la Medida</span>
+                </li>
+                <li class="price-feature-item">
+                  <span class="price-feature-icon">📊</span>
+                  <span class="price-feature-text">Dashboard de Métricas en Tiempo Real</span>
+                </li>
+                <li class="price-feature-item">
+                  <span class="price-feature-icon">🔍</span>
+                  <span class="price-feature-text">Detección de Oportunidades de Venta</span>
+                </li>
+                <li class="price-feature-item">
+                  <span class="price-feature-icon">🤖</span>
+                  <span class="price-feature-text">Asistentes IA Interconectados</span>
+                </li>
+                <li class="price-feature-item bonus">
+                  <span class="price-feature-icon bonus-icon">★</span>
+                  <span class="price-feature-text">INCLUYE: Servidor Dedicado & Respaldos</span>
+                </li>
+              </ul>
+              <a href="#reservar" class="price-cta-btn secondary" onclick="openPaymentModal('Sistema Completo Automatico')">Solicitar Plataforma Empresarial</a>
+            </div>
+
+            <!-- DISCLAIMER NOTE ABOUT API COSTS & ANTHROPIC CLAUDE -->
+            <div class="pricing-disclaimer-note" style="grid-column: 1 / -1; margin-top: 20px; padding: 16px 22px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(212, 175, 55, 0.2); border-radius: 12px; font-size: 12px; color: var(--text-muted); line-height: 1.6; text-align: center;">
+              📌 <strong>Nota de Transparencia & Consumos de API:</strong> Los precios listados corresponden a los honorarios de diseño, desarrollo, entrenamiento de modelos, integración técnica y mantenimiento. No incluyen consumos directos de proveedores de infraestructura ni consumo de APIs de Inteligencia Artificial (tales como API Keys de Anthropic Claude, Meta WhatsApp Cloud API, OpenAI, etc.), los cuales son facturados directamente por cada proveedor según el volumen de uso de tu empresa. <br>
+              🧠 <em>Trabajamos e integramos con los modelos de lenguaje más avanzados del mundo, incluyendo <strong>Anthropic Claude 3.5</strong>, Meta API, OpenAI y Google Gemini.</em>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- CALENDAR BOOKING & QUALIFICATION FORM -->
+        <section id="reservar" class="section booking-section-wrapper" style="background-color: var(--bg-secondary);">
+          <div class="section-header">
+            <div class="section-tagline">RESERVA TU DIAGNÓSTICO ESTRATÉGICO</div>
+            <h2 class="section-title text-gradient">Agenda tu Diagnóstico Estratégico de IA</h2>
+            <p class="section-description">
+              Elige la fecha y hora que prefieras para reunirnos por Zoom y evaluar las mejores oportunidades de automatización para tu empresa.
+            </p>
+          </div>
+          
+          <div class="booking-container">
+            
+            <!-- Calendar Column -->
+            <div class="booking-info-panel">
+              <div class="booking-step-badge">Paso 1: Elige Fecha y Hora</div>
+              <h3>Horarios Disponibles</h3>
+              <p>
+                Selecciona la hora que mejor te sirva en el calendario.
+              </p>
+              
+              <div class="calendar-widget">
+                <div class="calendar-header">
+                  <button class="calendar-nav-btn" id="prev-month">&lt;</button>
+                  <span class="calendar-month-year" id="month-year-label">Agosto 2026</span>
+                  <button class="calendar-nav-btn" id="next-month">&gt;</button>
+                </div>
+                
+                <div class="calendar-days-grid" id="calendar-days">
+                  <!-- Generado dinámicamente -->
+                </div>
+              </div>
+              
+              <!-- Slots -->
+              <div class="slots-container" id="slots-container">
+                <h4 class="slots-title">Horarios Libres:</h4>
+                <div class="slots-grid" id="slots-grid">
+                  <!-- Generado dinámicamente -->
+                </div>
+              </div>
+            </div>
+            
+            <!-- Form Column -->
+            <div class="booking-form-panel">
+              <div class="booking-step-badge">Paso 2: Tus Datos y los de tu Negocio</div>
+              
+              <div class="booking-summary-box" id="booking-summary">
+                Seleccionado: <span class="booking-summary-text" id="summary-datetime">-</span>
+              </div>
+              
+              <form id="booking-form">
+                <div class="form-group">
+                  <label class="form-label" for="booking-service">Servicio que te interesa</label>
+                  <select class="form-select" id="booking-service" required>
+                    <option value="Diagnostico Gratuito" selected>Diagnóstico Estratégico Gratis (30 min - $0 COP)</option>
+                    <option value="Asistente Basico WhatsApp">Asistente para Redes Sociales & WhatsApp ($1.950.000 COP + $330k/mes)</option>
+                    <option value="Asistente Experto Empresa">Asistente Experto Empresa ($3.450.000 COP + $520k/mes)</option>
+                    <option value="Sistema Completo Automatico">Plataforma Empresarial & Web IA ($5.900.000 COP + $890k/mes)</option>
+                  </select>
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label" for="booking-name">Tu Nombre Completo</label>
+                  <input type="text" class="form-input" id="booking-name" placeholder="Ej. Carlos Restrepo" required>
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label" for="booking-whatsapp">Tu Número de WhatsApp</label>
+                  <input type="tel" class="form-input" id="booking-whatsapp" placeholder="Ej. +573001234567" required>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="booking-social">Nombre o Redes de tu Empresa</label>
+                  <input type="text" class="form-input" id="booking-social" placeholder="Ej. Mi Tienda o @mitienda">
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label" for="booking-email">Tu Correo Electrónico</label>
+                  <input type="email" class="form-input" id="booking-email" placeholder="Ej. carlos@miempresa.com" required>
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label" for="booking-goal">¿En qué te gustaría que la Inteligencia Artificial te ayude?</label>
+                  <textarea class="form-textarea" id="booking-goal" placeholder="Ej. Responder mensajes de WhatsApp más rápido, agendar citas en automático, no perder clientes de noche..." required></textarea>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+                  Confirmar mi Reserva de Diagnóstico
+                </button>
+              </form>
+            </div>
+            
+          </div>
+        </section>
+
+      </div>
+      
+      <!-- PANEL PRIVADO ESTEBAN IA -->
+      <div id="ia-portal-view" class="ia-portal-section">
+        <div class="portal-wrapper">
+          
+          <div class="portal-header">
+            <div class="portal-user-info">
+              <img class="pwa-icon" src="images/icon-192.png" alt="Avatar Esteban" class="portal-avatar" id="ia-portal-avatar" style="width:48px; height:48px; border-radius:50%; border:2px solid var(--gold-primary);">
+              <div>
+                <h2 class="portal-title">Panel Esteban IA</h2>
+                <p class="portal-subtitle" id="ia-portal-identity">Esteban Serna · Programación y Control</p>
+              </div>
+            </div>
+            
+            <button class="nav-btn" id="btn-logout-google" style="display:none;">Cerrar Sesión</button>
+            <button class="nav-btn" id="btn-back-public">Volver a la Web</button>
+          </div>
+          
+          <!-- Auth Gate: Sign In Card -->
+          <div id="google-auth-gate">
+            <div class="google-auth-card">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--gold-primary)" stroke-width="1.5">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+              <h3 style="margin-top: 20px;">Sincronización Google Calendar</h3>
+              <p style="color: var(--text-secondary); margin-top: 10px; font-size: 14px;">
+                Inicia sesión con tu cuenta de Google para sincronizar directamente tu calendario y ver toda tu programación actual en esta app en tiempo real.
+              </p>
+              
+              <!-- Config credentials toggle -->
+              <a href="#" id="toggle-config" style="display:block; margin-top:20px; font-size:12px; color: var(--gold-primary);">Configurar Credenciales de Google</a>
+              
+              <button class="google-btn" id="btn-login-google">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google Logo">
+                Sincronizar Calendario
+              </button>
+            </div>
+          </div>
+          
+          <!-- Authenticated Esteban IA Dashboard -->
+          <div id="google-calendar-dashboard" style="display: none;">
+            <div class="ia-portal-dashboard">
+              
+              <!-- Left Sidebar Statistics -->
+              <div class="ia-portal-sidebar-card">
+                <h3>Resumen Semanal</h3>
+                
+                <div style="margin-top: 20px;">
+                  <span style="font-size: 11px; text-transform: uppercase; color: var(--text-secondary);">Sesiones Agendadas</span>
+                  <div class="ia-portal-stat-num" id="stat-sessions-count">0</div>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                  <span style="font-size: 11px; text-transform: uppercase; color: var(--text-secondary);">Próxima Sesión</span>
+                  <p id="stat-next-session" style="font-size: 13px; font-weight: 600; margin-top: 5px; color: var(--gold-primary);">-</p>
+                </div>
+                
+                <div style="margin-top: 30px;">
+                  <button class="btn btn-secondary" id="btn-refresh-calendar" style="width: 100%; padding: 10px 15px; font-size: 12px;">
+                    Sincronizar Ahora
+                  </button>
+                </div>
+              </div>
+              
+              <!-- Calendar Agenda List -->
+              <div class="ia-portal-calendar-card">
+                <div class="calendar-controls">
+                  <h3>Próximos Compromisos</h3>
+                  <div style="display:flex; gap: 8px;">
+                    <span class="btn-pill active" id="filter-all">Todo</span>
+                    <span class="btn-pill inactive" id="filter-sessions">Sesiones</span>
+                  </div>
+                </div>
+                
+                <div class="agenda-list" id="ia-portal-agenda-list">
+                  <!-- Dynamic items -->
+                  <div class="agenda-item">
+                    <div style="text-align: center; width: 100%;">
+                      Cargando tu programación...
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+            </div>
+          </div>
+          
+        </div>
+      </div>
+      
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="main-footer">
+      <div class="footer-logo">ESTEBAN IA</div>
+      <p class="footer-quote">
+        "El contexto es el argumento decisivo de los resultados de tu negocio. Cambiemos tu contexto operativo con Inteligencia Artificial."
+      </p>
+      <div class="footer-links">
+        <a href="#inicio">Inicio</a>
+        <a href="#servicios">¿Qué hace la IA?</a>
+        <a href="#planes">Servicios</a>
+        <a href="#reservar">Reservar</a>
+        <a href="#" id="link-ia-portal-login">Acceso Interno</a>
+      </div>
+      <div class="footer-copyright">
+        &copy; 2026 Esteban Serna. Todos los derechos reservados.<br>
+        Implementación de IA & Automatizaciones Empresariales.
+      </div>
+    </footer>
+
+    <!-- IOS INSTALLATION BANNER GUIDE -->
+    <div class="ios-install-banner" id="ios-pwa-banner">
+      <div class="ios-banner-icon">ES</div>
+      <div class="ios-banner-text">
+        <div class="ios-banner-title">Instala esta App en tu iPhone</div>
+        <div class="ios-banner-instructions">
+          Toca el icono de <strong>Compartir</strong> <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline; vertical-align:middle;"><polyline points="17 11 12 6 7 11"></polyline><line x1="12" y1="6" x2="12" y2="22"></line><rect x="5" y="15" width="14" height="8" rx="2" ry="2" fill="none"></rect></svg> abajo y selecciona <strong>"Agregar a inicio"</strong>.
+        </div>
+      </div>
+      <button class="ios-banner-close" id="btn-close-ios-banner">&times;</button>
+    </div>
+
+    <!-- OVERLAYS: DIGITAL RECEIPT & EMAIL ALERT -->
+    <div class="overlay" id="overlay-receipt">
+      <div class="modal-card">
+        <div class="modal-icon" style="color: var(--success-color);">✓</div>
+        <h3 class="modal-title">¡Reserva Confirmada!</h3>
+        <p class="modal-desc" style="color: var(--success-color); margin-bottom: 20px;">Tu agendamiento ha sido registrado de manera exitosa.</p>
+        
+        <div class="receipt-layout" id="receipt-details">
+          <!-- Generado dinámicamente -->
+        </div>
+
+        <div style="background: rgba(46, 204, 113, 0.05); border: 1.5px solid rgba(46,204,113,0.15); border-radius: 8px; padding: 15px; margin-bottom: 25px; text-align: left;">
+          <p style="font-size: 11px; color: var(--text-secondary); line-height: 1.45;">
+            ✉ <strong>Notificación Automatizada:</strong> Se ha enviado un correo electrónico de confirmación con el enlace de Zoom y el archivo de agenda (.ics) a tu dirección registrada.
+          </p>
+        </div>
+
+        <button class="btn btn-primary" id="btn-receipt-close" style="width: 100%;">Finalizar y Salir</button>
+      </div>
+    </div>
+
+    <!-- GOOGLE CALENDAR CONFIGURATION DIALOG -->
+    <div class="overlay" id="overlay-config">
+      <div class="modal-card config-modal">
+        <h3>Credenciales de Integración</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 13px;">
+          Para vincular tu Google Calendar real en JavaScript, debes configurar tus claves API de Google Cloud Console.
+        </p>
+        
+        <div class="form-group" style="text-align: left;">
+          <label class="form-label" for="config-client-id">Google Client ID</label>
+          <input type="text" class="form-input" id="config-client-id" placeholder="12345678-abc.apps.googleusercontent.com">
+        </div>
+        
+        <div class="form-group" style="text-align: left;">
+          <label class="form-label" for="config-api-key">Google API Key</label>
+          <input type="password" class="form-input" id="config-api-key" placeholder="AIzaSy...">
+        </div>
+
+        <div class="form-group" style="text-align: left;">
+          <label class="form-label" for="config-webhook-url">Google Apps Script Webhook URL</label>
+          <input type="url" class="form-input" id="config-webhook-url" placeholder="https://script.google.com/macros/s/.../exec">
+        </div>
+        
+        <div class="form-group" style="text-align: left; margin-top: 15px;">
+          <label class="form-label" for="config-mp-link-tier2">Mercado Pago Link (Asistente Básico $1.950.000)</label>
+          <input type="url" class="form-input" id="config-mp-link-tier2" placeholder="https://www.mercadopago.com.co/checkout/v1/redirect?pref_id=...">
+        </div>
+
+        <div class="form-group" style="text-align: left;">
+          <label class="form-label" for="config-mp-link-tier3">Mercado Pago Link (Asistente Experto $3.450.000)</label>
+          <input type="url" class="form-input" id="config-mp-link-tier3" placeholder="https://www.mercadopago.com.co/checkout/v1/redirect?pref_id=...">
+        </div>
+
+        <div class="form-group" style="text-align: left;">
+          <label class="form-label" for="config-mp-link-tier4">Mercado Pago Link (Plataforma $5.900.000)</label>
+          <input type="url" class="form-input" id="config-mp-link-tier4" placeholder="https://www.mercadopago.com.co/checkout/v1/redirect?pref_id=...">
+        </div>
+
+        <div class="form-group" style="text-align: left;">
+          <label class="form-label" for="config-global66-link">Global 66 Link / ID de Transferencia</label>
+          <input type="url" class="form-input" id="config-global66-link" placeholder="https://global66.com/...">
+        </div>
+        
+        <div style="font-size: 11px; text-align: left; color: var(--text-muted); margin-bottom: 20px; line-height: 1.4;">
+          * Las claves y enlaces de pago se guardan localmente para el portal.
+        </div>
+        
+        <div style="display: flex; gap: 15px;">
+          <button class="btn btn-secondary" id="btn-config-cancel" style="flex:1; padding: 10px;">Cancelar</button>
+          <button class="btn btn-primary" id="btn-config-save" style="flex:1; padding: 10px;">Guardar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- OVERLAYS: ELEGANT PAYMENT & BOOKING OPTIONS MODAL -->
+    <div class="overlay" id="overlay-payment-options">
+      <div class="modal-card" style="max-width: 540px; text-align: left; padding: 32px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+          <div>
+            <span style="font-size: 10px; font-weight: 700; letter-spacing: 1.5px; color: var(--gold-primary); text-transform: uppercase;">INVERSIÓN ESTRATÉGICA</span>
+            <h3 class="modal-title" id="payment-modal-plan-title" style="margin-top: 4px; font-size: 20px;">Asistente Experto en tu Empresa</h3>
+          </div>
+          <button id="btn-close-payment-modal" style="background: none; border: none; color: var(--text-muted); font-size: 24px; cursor: pointer; line-height: 1;">&times;</button>
+        </div>
+        
+        <p class="modal-desc" id="payment-modal-plan-price" style="font-size: 15px; color: #fff; margin-bottom: 24px;">
+          Inversión: <strong>$3.450.000 COP</strong> + $520.000 COP/mes
+        </p>
+
+        <div style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px;">
+          
+          <!-- MERCADO PAGO OPTION -->
+          <a href="#" id="btn-pay-mercadopago-link" target="_blank" rel="noopener" class="payment-option-card" style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; background: rgba(0, 158, 227, 0.08); border: 1px solid rgba(0, 158, 227, 0.3); border-radius: 12px; text-decoration: none; transition: transform 0.2s, border-color 0.2s;">
+            <div style="display: flex; align-items: center; gap: 14px;">
+              <div style="font-size: 24px;">💳</div>
+              <div>
+                <div style="font-size: 14px; font-weight: 700; color: #009ee3;">Pagar con Mercado Pago</div>
+                <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">Tarjetas de crédito, débito, PSE, Nequi o Efecty (Colombia)</div>
+              </div>
+            </div>
+            <span style="font-size: 18px; color: #009ee3;">➔</span>
+          </a>
+
+          <!-- GLOBAL 66 OPTION -->
+          <a href="#" id="btn-pay-global66-link" target="_blank" rel="noopener" class="payment-option-card" style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; background: rgba(212, 175, 55, 0.08); border: 1px solid rgba(212, 175, 55, 0.3); border-radius: 12px; text-decoration: none; transition: transform 0.2s, border-color 0.2s;">
+            <div style="display: flex; align-items: center; gap: 14px;">
+              <div style="font-size: 24px;">🌐</div>
+              <div>
+                <div style="font-size: 14px; font-weight: 700; color: var(--gold-light);">Pagar con Global 66</div>
+                <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">Transferencia internacional o pago en dólares (USD / COP)</div>
+              </div>
+            </div>
+            <span style="font-size: 18px; color: var(--gold-light);">➔</span>
+          </a>
+
+          <!-- DIRECT BOOKING OPTION -->
+          <button id="btn-pay-book-first" class="payment-option-card" style="width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; text-align: left; cursor: pointer; transition: transform 0.2s;">
+            <div style="display: flex; align-items: center; gap: 14px;">
+              <div style="font-size: 24px;">📅</div>
+              <div>
+                <div style="font-size: 14px; font-weight: 700; color: #fff;">Agendar Cita de Valoración Primero</div>
+                <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">Reserva una llamada de 30 min sin costo antes de realizar el pago</div>
+              </div>
+            </div>
+            <span style="font-size: 18px; color: #fff;">➔</span>
+          </button>
+
+        </div>
+
+        <div style="font-size: 11px; color: var(--text-muted); text-align: center; line-height: 1.4;">
+          🔒 Transacción protegida. Todos los agendamientos incluyen sesión de integración técnica.
+        </div>
+      </div>
+    </div>
+
+    <!-- FULL SCREEN PHOTO VIEWER -->
+    <div class="overlay" id="overlay-photo-viewer" onclick="closePhotoViewer()">
+      <img src="" id="photo-viewer-img" style="max-width: 90%; max-height: 80vh; object-fit: contain; border: 2px solid var(--gold-primary); border-radius: 8px;" alt="Detalle Foto">
+      <div style="position: absolute; bottom: 20px; color: #FFF; font-size: 12px; letter-spacing: 2px;">Toca en cualquier parte para cerrar</div>
+    </div>
+
+    <!-- FLOATING WHATSAPP BUTTON -->
+    <a href="https://wa.me/573202025134?text=Hola%20Esteban,%20me%20gustar%C3%ADa%20obtener%20m%C3%A1s%20informaci%C3%B3n%20sobre%20tus%20Asistentes%20de%20IA%20para%20negocios." class="whatsapp-float-btn" target="_blank" rel="noopener noreferrer" aria-label="Contactar por WhatsApp">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.66.986 3.284 1.489 4.905 1.49h.008c5.466 0 9.911-4.437 9.914-9.904.001-2.648-1.02-5.138-2.877-6.998C16.83 1.88 14.34 .856 12.01 .856 6.545.856 2.099 5.293 2.096 10.761c-.001 1.708.455 3.376 1.32 4.887l-.995 3.633 3.73-.978zM17.65 14.4c-.3-.15-1.78-.88-2.05-.98-.28-.1-.48-.15-.68.15-.2.3-.78.98-.95 1.18-.18.2-.35.23-.65.08-1.25-.63-2.07-1.12-2.88-2.52-.22-.38.22-.35.63-1.15.1-.2.05-.38-.03-.53-.08-.15-.68-1.63-.93-2.24-.24-.58-.49-.5-.68-.5-.18-.01-.38-.01-.58-.01-.2 0-.52.07-.79.37-.27.3-1.03 1-1.03 2.44 0 1.44 1.05 2.84 1.2 3.03.15.2 2.06 3.15 5 4.43.7.3 1.25.48 1.68.62.7.22 1.34.19 1.84.11.56-.08 1.78-.73 2.03-1.43.25-.7.25-1.3.18-1.43-.07-.13-.28-.2-.58-.35z"/>
+      </svg>
+    </a>
+
+  </div>
+
+  <!-- Javascript Scripts -->
+  <script src="js/app.js"></script>
+  <script src="js/calendar.js"></script>
+</body>
+</html>

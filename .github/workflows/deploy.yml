@@ -1,0 +1,37 @@
+name: Deploy Esteban IA por FTP
+
+# Se ejecuta automáticamente cada vez que hay un push a "main".
+# También se puede lanzar manualmente desde la pestaña "Actions" en GitHub.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  ftp-deploy:
+    name: Subir sitio al hosting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el código del repositorio
+        uses: actions/checkout@v4
+
+      - name: Subir por FTP a public_html
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          server-dir: /public_html/
+          # Solo se sube lo que el sitio realmente necesita en producción
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/.github/**
+            **/.archive/**
+            **/node_modules/**
+            **/*.zip
+            **/deploy-ftp.ps1
+            **/delete-ftp-folder.ps1
+            **/README.md
+            **/CLAUDE.md
+            **/package.json
