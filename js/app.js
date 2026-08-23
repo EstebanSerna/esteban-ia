@@ -68,9 +68,14 @@ function initMobileMenu() {
 function initQuantumBackground() {
   const canvas = document.getElementById('quantum-canvas');
   if (!canvas) return;
-  
+
+  // Respeta "reducir movimiento" del sistema operativo (accesibilidad) --
+  // se deja el canvas quieto, sin el bucle de animacion.
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
   const ctx = canvas.getContext('2d');
   let particles = [];
+  let animationFrameId = null;
   let mouse = { x: null, y: null, radius: 120 };
   
   function resizeCanvas() {
@@ -185,15 +190,35 @@ function initQuantumBackground() {
   }
 
   function animate() {
-    requestAnimationFrame(animate);
+    animationFrameId = requestAnimationFrame(animate);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
+
     particles.forEach(p => p.update());
     connect();
   }
-  
+
+  // Pausa el bucle de animacion cuando la pestaña no esta visible (ahorra
+  // CPU/batería en segundo plano) y lo retoma al volver.
+  document.addEventListener('visibilitychange', () => {
+    if (prefersReducedMotion) return;
+    if (document.hidden) {
+      if (animationFrameId !== null) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+      }
+    } else if (animationFrameId === null) {
+      animate();
+    }
+  });
+
   resizeCanvas();
-  animate();
+  if (prefersReducedMotion) {
+    // Un solo cuadro estatico (particulas + conexiones), sin bucle continuo.
+    particles.forEach(p => p.draw());
+    connect();
+  } else {
+    animate();
+  }
 }
 
 // 2. PWA REGISTRATION
