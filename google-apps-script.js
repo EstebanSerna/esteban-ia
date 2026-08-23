@@ -277,6 +277,7 @@ function handleMercadoPagoCheckout(data) {
     });
 
     const paymentResult = JSON.parse(paymentResponse.getContentText());
+    console.log("Respuesta de Mercado Pago /v1/payments: status=" + paymentResult.status + " status_detail=" + paymentResult.status_detail + " id=" + paymentResult.id);
 
     // Un pago puede quedar "in_process"/"pending" en revision de fraude (esto
     // pasa con pagos reales tambien, no solo en sandbox). No se activa la
@@ -320,6 +321,7 @@ function handleMercadoPagoCheckout(data) {
     });
 
   } catch (err) {
+    console.error("Error inesperado en handleMercadoPagoCheckout: " + err.message);
     return createJsonResponse({ success: false, error: err.message });
   }
 }
@@ -359,6 +361,10 @@ function activateSubscriptionAndNotify_(data, paymentResult) {
   });
 
   const subResult = JSON.parse(subResponse.getContentText());
+  // Se deja registrado siempre en "Ejecuciones" (independiente de si el
+  // correo de aviso llega o no) para poder diagnosticar sin depender del
+  // envio de MailApp.
+  console.log("Respuesta de Mercado Pago /preapproval: " + JSON.stringify(subResult));
   const subscriptionActive = subResult.status === "authorized" || subResult.status === "pending";
 
   if (!subscriptionActive) {
@@ -518,7 +524,9 @@ function notifySuccessfulSale_(data, paymentResult, subResult, subscriptionStart
         "Contáctalo por WhatsApp para coordinar el inicio de la implementación."
     });
   } catch (mailErr) {
-    // Si falla el envio del correo no se bloquea el flujo principal
+    // Si falla el envio del correo no se bloquea el flujo principal, pero
+    // queda registrado en "Ejecuciones" para poder diagnosticarlo.
+    console.error("Fallo el envio de correo de notificacion: " + mailErr.message);
   }
 }
 
@@ -536,7 +544,9 @@ function notifyPartialCheckoutFailure_(data, paymentResult, subResult) {
         "Contacta al cliente para completar la suscripción manualmente, o reintenta desde el panel de Mercado Pago."
     });
   } catch (mailErr) {
-    // Si falla el envio del correo no se bloquea el flujo principal
+    // Si falla el envio del correo no se bloquea el flujo principal, pero
+    // queda registrado en "Ejecuciones" para poder diagnosticarlo.
+    console.error("Fallo el envio de correo de notificacion: " + mailErr.message);
   }
 }
 
@@ -560,7 +570,9 @@ function notifyPendingPayment_(data, paymentResult) {
         "No hace falta que hagas nada: en cuanto Mercado Pago resuelva el pago te llegará un correo nuevo confirmando si se activó la suscripción o si finalmente se rechazó."
     });
   } catch (mailErr) {
-    // Si falla el envio del correo no se bloquea el flujo principal
+    // Si falla el envio del correo no se bloquea el flujo principal, pero
+    // queda registrado en "Ejecuciones" para poder diagnosticarlo.
+    console.error("Fallo el envio de correo de notificacion: " + mailErr.message);
   }
 }
 
@@ -580,7 +592,9 @@ function notifyPendingResolvedAsRejected_(data, paymentResult) {
         "No se activó la suscripción. Es solo informativo, no hace falta que hagas nada."
     });
   } catch (mailErr) {
-    // Si falla el envio del correo no se bloquea el flujo principal
+    // Si falla el envio del correo no se bloquea el flujo principal, pero
+    // queda registrado en "Ejecuciones" para poder diagnosticarlo.
+    console.error("Fallo el envio de correo de notificacion: " + mailErr.message);
   }
 }
 
