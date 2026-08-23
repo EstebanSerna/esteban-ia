@@ -1449,7 +1449,6 @@ function initAISimulator() {
 // todavia estan pendientes (marcados abajo). Ninguno de estos es un dato
 // secreto: son links de cobro publicos de Mercado Pago, pensados para
 // compartirse.
-const G66_LINK_DEFAULT = 'https://global66.com/';
 // Respaldo generico mientras se resuelve el plan de suscripcion que Mercado
 // Pago no dejo crear (Experto y Plataforma) -- lleva a la pagina general de
 // suscripciones en vez de a un plan especifico.
@@ -1483,7 +1482,6 @@ function openPaymentModal(serviceKey) {
   const mpOneTimeLink = document.getElementById('btn-pay-mercadopago-onetime');
   const mpSubLink = document.getElementById('btn-pay-mercadopago-subscription');
   const subDesc = document.getElementById('payment-modal-subscription-desc');
-  const g66Link = document.getElementById('btn-pay-global66-link');
   const bookBtn = document.getElementById('btn-pay-book-first');
 
   const planInfo = planDetailsMap[serviceKey] || planDetailsMap['Asistente Experto Empresa'];
@@ -1498,7 +1496,12 @@ function openPaymentModal(serviceKey) {
       ? 'Plan aún en configuración — te llevamos a Suscripciones de Mercado Pago'
       : 'Cobro automático mensual de sostenimiento';
   }
-  if (g66Link) g66Link.href = G66_LINK_DEFAULT;
+
+  // Colapsar los datos de Global 66 cada vez que se abre el modal de nuevo
+  const g66Details = document.getElementById('global66-details');
+  const g66Icon = document.getElementById('global66-toggle-icon');
+  if (g66Details) g66Details.style.display = 'none';
+  if (g66Icon) g66Icon.textContent = '▾';
 
   if (bookBtn) {
     bookBtn.onclick = () => {
@@ -1512,7 +1515,46 @@ function openPaymentModal(serviceKey) {
 
 window.openPaymentModal = openPaymentModal;
 
+// Datos de cuenta ACH de Global 66 (para transferencia en USD). No son
+// credenciales de acceso, son los datos publicos para RECIBIR el pago.
+const GLOBAL66_ACCOUNT_TEXT =
+  'Cuenta ACH (USD) - Global 66\n' +
+  'Titular: Esteban Serna Garcia\n' +
+  'Tipo de cuenta: Checking\n' +
+  'N.º de cuenta: 8339288538\n' +
+  'Routing Number: 026073150\n' +
+  'Banco: Community Federal Savings Bank\n' +
+  'Dirección del banco: 5 Penn Plaza, 14th Floor, New York, NY 10001, US';
+
+function initGlobal66Toggle() {
+  const toggleBtn = document.getElementById('btn-toggle-global66');
+  const details = document.getElementById('global66-details');
+  const icon = document.getElementById('global66-toggle-icon');
+  const copyBtn = document.getElementById('btn-copy-global66');
+  if (!toggleBtn || !details) return;
+
+  toggleBtn.addEventListener('click', () => {
+    const isOpen = details.style.display !== 'none';
+    details.style.display = isOpen ? 'none' : 'block';
+    if (icon) icon.textContent = isOpen ? '▾' : '▴';
+  });
+
+  if (copyBtn) {
+    copyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(GLOBAL66_ACCOUNT_TEXT).then(() => {
+        const original = copyBtn.textContent;
+        copyBtn.textContent = '✅ Copiado';
+        setTimeout(() => { copyBtn.textContent = original; }, 2000);
+      }).catch(() => {
+        alert('No se pudo copiar automáticamente. Selecciona el texto manualmente.');
+      });
+    });
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+  initGlobal66Toggle();
+
   const closePaymentModalBtn = document.getElementById('btn-close-payment-modal');
   if (closePaymentModalBtn) {
     closePaymentModalBtn.addEventListener('click', () => {
