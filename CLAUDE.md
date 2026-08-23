@@ -59,6 +59,12 @@ esteban-ia/
 ### 3. Interactive AI Simulator (`#simulador`, `app.js`)
 - Interactive chat demo simulating a 24/7 autonomous sales & service agent.
 - Features pre-set user prompt buttons and custom message input with dynamic typing indicators.
+- **Response chain** (`fetchRealAIResponse()`): (1) Claude via the Apps Script chat proxy
+  (`action: "chat"` on the same webhook URL as bookings — the Anthropic API key lives server-side
+  in Script Properties, never in the browser); (2) silent fallback to the free Pollinations.ai
+  endpoint if the proxy isn't configured or fails; (3) local keyword-based rules engine as the
+  final fallback (see `addUserAndReply()`'s catch block). There is intentionally no UI for visitors
+  to paste their own API key — that pattern was removed as insecure/unreliable.
 
 ### 4. Diagnostic Booking Wizard (`#reservar`, `app.js`)
 - Multi-step interactive flow:
@@ -73,11 +79,19 @@ esteban-ia/
 ### 5. Google Calendar & Webhook Integration (`google-apps-script.js` & `calendar.js`)
 - **Backend Handler (`google-apps-script.js`)**:
   - Implements `doPost(e)` with CORS headers (`Access-Control-Allow-Origin: *`).
-  - Parses dates formatted in Spanish (e.g., `"18 de Julio de 2026"`, `"10:30 AM"`).
+  - Routes on `data.action`: `"chat"` → `handleChatDemo()` (Claude proxy, see below); anything
+    else → the existing booking flow (kept as the default so old clients without `action` still work).
+  - Booking flow parses dates formatted in Spanish (e.g., `"18 de Julio de 2026"`, `"10:30 AM"`).
   - Automatically creates a Google Calendar event with duration dynamically set by service type (30, 45, or 60 min).
   - Sends email invitation to client (`guests: data.email`).
+- **Chat Proxy (`handleChatDemo()`)**:
+  - Reads `ANTHROPIC_API_KEY` from `PropertiesService.getScriptProperties()` — set manually in the
+    Apps Script editor UI, never committed to this repo.
+  - Calls `https://api.anthropic.com/v1/messages` server-side with model `claude-haiku-4-5-20251001`.
+  - `isWithinChatRateLimit_()` caps total chat calls to `CHAT_RATE_LIMIT_PER_MINUTE` (20) per minute
+    across all visitors via `CacheService`, since the endpoint is publicly reachable with no auth.
 - **Client Webhook Config**:
-  - Saved in `localStorage` key `apps-script-url` or `google-webhook-url`.
+  - Saved in `localStorage` key `apps-script-url` or `google-webhook-url`. Used for both bookings and chat.
 
 ### 6. Panel Privado Esteban IA & Demo Mode (`calendar.js`)
 - Accessible via button `#btn-ia-portal`.

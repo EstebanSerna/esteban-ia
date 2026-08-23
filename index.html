@@ -21,7 +21,7 @@
   <link class="pwa-icon" rel="apple-touch-icon" href="images/icon-192.png">
   
   <!-- CSS Stylesheet (?v= se sube en cada cambio para evitar CSS viejo en caché) -->
-  <link rel="stylesheet" href="css/styles.css?v=4">
+  <link rel="stylesheet" href="css/styles.css?v=5">
   
   <!-- Google API Client Script for GIS & Google Auth -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -348,30 +348,12 @@
                 <input type="text" class="demo-input-field" id="demo-company-info" value="Entregamos tus lentes formulados en 24 a 48 horas con garantía de 1 año en la montura. Recibimos Tarjetas, Nequi y Addi.">
               </div>
 
-              <!-- AI ENGINE PROVIDER & API KEY SELECTION -->
-              <div style="grid-column: 1 / -1; background: rgba(212,175,55,0.04); border: 1px dashed rgba(212,175,55,0.25); padding: 12px 14px; border-radius: 10px; margin-top: 4px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="const p=document.getElementById('ai-config-panel'); p.style.display=p.style.display==='none'?'grid':'none';">
-                  <span style="font-size: 12px; font-weight: 700; color: var(--gold-light);">🤖 Motor de Inteligencia Artificial (IA Real)</span>
-                  <span style="font-size: 11px; color: var(--gold-primary); border: 1px solid rgba(212,175,55,0.3); padding: 2px 8px; border-radius: 6px; background: rgba(212,175,55,0.1);">
-                    ⚡ IA Conectada (Gratis o con tu Key) ▼
-                  </span>
-                </div>
-                <div id="ai-config-panel" style="margin-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                  <div>
-                    <label class="form-label" style="font-size: 11px; color: var(--gold-light);">Proveedor de Modelo IA</label>
-                    <select class="demo-input-field" id="demo-ai-provider" style="font-size: 12px; height: 38px; background: #0c0c10; color: #fff;">
-                      <option value="pollinations">🌐 Motor IA Real Gratis (Incluido / Sin Key)</option>
-                      <option value="claude">🔑 Anthropic Claude 3.5 (Claude API)</option>
-                      <option value="openai">🔑 OpenAI (GPT-4o-mini)</option>
-                      <option value="gemini">🔑 Google Gemini 1.5 Flash</option>
-                      <option value="groq">🔑 Groq API (Llama 3.3 70B)</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label class="form-label" style="font-size: 11px; color: var(--text-secondary);">API Key Personal (Opcional)</label>
-                    <input type="password" class="demo-input-field" id="demo-ai-key" placeholder="Pegar sk-proj-... / AIzaSy... (Opcional)" style="font-size: 12px; height: 38px;">
-                  </div>
-                </div>
+              <!-- AI ENGINE BADGE (sin inputs: la API key vive en el servidor, nunca en el navegador) -->
+              <div style="grid-column: 1 / -1; background: rgba(212,175,55,0.04); border: 1px dashed rgba(212,175,55,0.25); padding: 12px 14px; border-radius: 10px; margin-top: 4px; display: flex; align-items: center; justify-content: space-between;">
+                <span style="font-size: 12px; font-weight: 700; color: var(--gold-light);">🤖 Motor de Inteligencia Artificial</span>
+                <span style="font-size: 11px; color: var(--gold-primary); border: 1px solid rgba(212,175,55,0.3); padding: 2px 8px; border-radius: 6px; background: rgba(212,175,55,0.1);">
+                  ⚡ Potenciado por Claude (Anthropic)
+                </span>
               </div>
             </div>
 
@@ -655,7 +637,7 @@
           <!-- DISCLAIMER NOTE ABOUT API COSTS & ANTHROPIC CLAUDE (fuera del carrusel, ancho completo) -->
           <div class="pricing-disclaimer-note" style="max-width: 1200px; margin: 20px auto 0; padding: 16px 22px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(212, 175, 55, 0.2); border-radius: 12px; font-size: 12px; color: var(--text-muted); line-height: 1.6; text-align: center;">
             📌 <strong>Nota de Transparencia & Consumos de API:</strong> Los precios listados corresponden a los honorarios de diseño, desarrollo, entrenamiento de modelos, integración técnica y mantenimiento. No incluyen consumos directos de proveedores de infraestructura ni consumo de APIs de Inteligencia Artificial (tales como API Keys de Anthropic Claude, Meta WhatsApp Cloud API, OpenAI, etc.), los cuales son facturados directamente por cada proveedor según el volumen de uso de tu empresa. <br>
-            🧠 <em>Trabajamos e integramos con los modelos de lenguaje más avanzados del mundo, incluyendo <strong>Anthropic Claude 3.5</strong>, Meta API, OpenAI y Google Gemini.</em>
+            🧠 <em>Trabajamos e integramos con los modelos de lenguaje más avanzados del mundo, incluyendo <strong>Anthropic Claude</strong>, Meta API, OpenAI y Google Gemini.</em>
           </div>
         </section>
 
@@ -1032,7 +1014,7 @@
   </div>
 
   <!-- Javascript Scripts -->
-  <script src="js/app.js?v=4"></script>
-  <script src="js/calendar.js?v=4"></script>
+  <script src="js/app.js?v=5"></script>
+  <script src="js/calendar.js?v=5"></script>
 </body>
 </html>

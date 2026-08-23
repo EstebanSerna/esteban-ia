@@ -8,7 +8,7 @@ Plataforma web interactiva, embudo de ventas de alta conversión y Progressive W
 
 - 🚀 **Embudo de Ventas Interactivo**: Sección Hero, explicación de capacidades de IA, tabla comparativa Antes vs Después y paquetes de servicios.
 - 🧮 **Calculadora de Ahorro ROI**: Módulo interactivo que calcula el tiempo ahorrado en horas al mes y el retorno de inversión anual en USD ($) y COP ($).
-- 💬 **Simulador de Agente IA**: Demostración interactiva en tiempo real con respuestas simuladas de un asistente virtual 24/7.
+- 💬 **Simulador de Agente IA**: Demostración interactiva en tiempo real potenciada por Claude (Anthropic) real, vía un proxy seguro en Google Apps Script (la API key nunca viaja al navegador). Con respaldo automático a un motor gratuito si el proxy no está configurado.
 - 📅 **Motor de Reservas Integrado**: Agendamiento en 4 pasos (Fecha, Hora, Servicio, Datos del Cliente) con persistencia local y sincronización remota.
 - ⚙️ **Integración con Google Calendar (Google Apps Script)**: Backend sin servidor (`google-apps-script.js`) que crea eventos automáticamente en Google Calendar y envía invitaciones por correo electrónico.
 - 📱 **Progressive Web App (PWA)**: Compatible con instalación en dispositivos móviles y de escritorio (`manifest.json` y `sw.js`).
@@ -64,6 +64,18 @@ Plataforma web interactiva, embudo de ventas de alta conversión y Progressive W
    - **Quién tiene acceso**: *Cualquiera (Anyone)*.
 7. Copia la URL de la aplicación web generada (termina en `/exec`).
 8. Pega esta URL en el portal de configuración de la web o en `localStorage` bajo la clave `apps-script-url`.
+
+### 🤖 Activar el Simulador de IA con Claude Real
+
+El mismo backend de Apps Script funciona como proxy seguro para que el simulador de chat responda con Claude de verdad, sin exponer tu API key en el navegador:
+
+1. Consigue una API key en [console.anthropic.com/settings/keys](https://console.anthropic.com/settings/keys).
+2. En tu proyecto de Apps Script: **Configuración del proyecto** (ícono de engranaje) → **Propiedades del script** → **Añadir propiedad del script**.
+3. Nombre: `ANTHROPIC_API_KEY`, Valor: tu API key. Guardar.
+4. Listo — no hace falta volver a implementar el despliegue, el cambio aplica de inmediato.
+5. Configura un límite de gasto en [console.anthropic.com/settings/limits](https://console.anthropic.com/settings/limits) como red de seguridad, ya que el demo es público (el proxy ya limita a 20 mensajes/minuto en total, ajustable en `CHAT_RATE_LIMIT_PER_MINUTE`).
+
+Si no configuras la API key, el simulador sigue funcionando con un motor de IA gratuito de respaldo.
 
 ---
 

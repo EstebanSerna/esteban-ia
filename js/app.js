@@ -1218,9 +1218,6 @@ function sendQuickPrompt(action) {
 }
 
 async function fetchRealAIResponse(userText) {
-  const provider = document.getElementById('demo-ai-provider')?.value || 'pollinations';
-  const customKey = document.getElementById('demo-ai-key')?.value.trim() || '';
-
   const systemPrompt = `Eres ${currentDemoConfig.botName}, la asesora virtual de inteligencia artificial inteligente, amable y experta de "${currentDemoConfig.companyName}".
 Categoría del negocio: ${currentDemoConfig.categoryBadge}.
 Ubicación: ${currentDemoConfig.location}.
@@ -1240,92 +1237,28 @@ Instrucciones de respuesta:
 - Al final de tu respuesta, invita cordialmente al cliente a tomar la acción principal correspondiente a ${currentDemoConfig.companyName} (agendar una cita/valoración gratis, pedir a domicilio o reservar una mesa).
 - Responde usando formato HTML simple (<strong>, <em>, <br>). No uses markdown con ***.`;
 
-  // 0. Custom Anthropic Claude
-  if (provider === 'claude' && customKey) {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': customKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20241022',
-        max_tokens: 1000,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: userText }]
-      })
-    });
-    const data = await res.json();
-    if (data.content && data.content[0]?.text) {
-      return data.content[0].text.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  // 0. Claude real, vía el proxy de Google Apps Script (la API key vive en el
+  //    servidor, nunca en el navegador). Es la fuente principal del demo.
+  const webhookURL = localStorage.getItem('google-webhook-url') || localStorage.getItem('apps-script-url');
+  if (webhookURL) {
+    try {
+      const res = await fetch(webhookURL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ action: 'chat', systemPrompt, userText })
+      });
+      const data = await res.json();
+      if (data.success && data.text) {
+        return data.text.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      }
+      console.log('Proxy de Claude sin respuesta util, usando respaldo:', data.error);
+    } catch (err) {
+      console.log('Proxy de Claude no disponible, usando respaldo:', err);
     }
   }
 
-  // 1. Custom OpenAI
-  if (provider === 'openai' && customKey) {
-    const res = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${customKey}`
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userText }
-        ],
-        temperature: 0.7
-      })
-    });
-    const data = await res.json();
-    if (data.choices && data.choices[0]?.message?.content) {
-      return data.choices[0].message.content.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    }
-  }
-
-  // 2. Custom Gemini
-  if (provider === 'gemini' && customKey) {
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${customKey}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [
-          { role: 'user', parts: [{ text: `${systemPrompt}\n\nPregunta del cliente: ${userText}` }] }
-        ]
-      })
-    });
-    const data = await res.json();
-    if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
-      return data.candidates[0].content.parts[0].text.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    }
-  }
-
-  // 3. Custom Groq
-  if (provider === 'groq' && customKey) {
-    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${customKey}`
-      },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userText }
-        ]
-      })
-    });
-    const data = await res.json();
-    if (data.choices && data.choices[0]?.message?.content) {
-      return data.choices[0].message.content.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    }
-  }
-
-  // 4. Free Real AI Endpoint (Pollinations.ai)
+  // 1. Respaldo silencioso: motor de IA gratuito (Pollinations.ai), solo si
+  //    el proxy de Claude no esta configurado o fallo momentaneamente.
   const fullPrompt = `${systemPrompt}\n\nPregunta del cliente: ${userText}`;
   const res = await fetch(`https://text.pollinations.ai/${encodeURIComponent(fullPrompt)}?model=openai&json=false`);
   if (res.ok) {

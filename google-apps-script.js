@@ -1,22 +1,35 @@
 /**
- * ESTEBAN SERNA - GOOGLE CALENDAR SYNC ENGINE
- * 
+ * ESTEBAN SERNA - GOOGLE CALENDAR SYNC ENGINE + PROXY DE CHAT CON CLAUDE
+ *
  * Instrucciones de instalación:
  * 1. Ve a https://script.google.com/ e inicia sesión con tu cuenta de Google.
  * 2. Haz clic en "Nuevo proyecto".
  * 3. Reemplaza todo el código del editor con este archivo.
  * 4. Cambia la variable `ESTEBAN_EMAIL` de abajo con tu correo de Google.
- * 5. Haz clic en "Implementar" (Deploy) > "Nueva implementación" (New deployment).
- * 6. Tipo: "Aplicación web" (Web app).
- * 7. Configuración:
+ * 5. Guarda tu API key de Claude SIN escribirla en este archivo:
+ *    Configuración del proyecto (ícono de engranaje) > Propiedades del script >
+ *    "Añadir propiedad del script" > Nombre: ANTHROPIC_API_KEY, Valor: tu key
+ *    (la consigues en https://console.anthropic.com/settings/keys).
+ *    Esto la guarda cifrada del lado del servidor; nunca llega al navegador
+ *    ni queda visible en este código.
+ * 6. Haz clic en "Implementar" (Deploy) > "Nueva implementación" (New deployment).
+ * 7. Tipo: "Aplicación web" (Web app).
+ * 8. Configuración:
  *    - Descripción: Sincronización Web Esteban IA
  *    - Ejecutar como: "Tú" (Me) -> Tu cuenta.
  *    - Quién tiene acceso: "Cualquiera" (Anyone) -> IMPORTANTE para que la web pueda enviarle datos.
- * 8. Haz clic en "Implementar" y autoriza los permisos requeridos para acceder a tu calendario.
- * 9. Copia la "URL de la aplicación web" (termina en /exec) y guárdala para pegarla en la configuración de la web.
+ * 9. Haz clic en "Implementar" y autoriza los permisos requeridos para acceder a tu calendario.
+ * 10. Copia la "URL de la aplicación web" (termina en /exec) y guárdala para pegarla en la configuración de la web.
+ *
+ * IMPORTANTE sobre costos: este endpoint queda accesible públicamente (como
+ * cualquier webhook). Se incluye un límite básico de peticiones por minuto
+ * (ver CHAT_RATE_LIMIT_PER_MINUTE abajo) para evitar abuso, pero de todas
+ * formas revisa periódicamente tu consumo y configura un límite de gasto en
+ * https://console.anthropic.com/settings/limits como red de seguridad.
  */
 
 const ESTEBAN_EMAIL = "esteban.serna.garcia@gmail.com"; // Reemplaza por tu correo real si es diferente
+const CHAT_RATE_LIMIT_PER_MINUTE = 20; // Maximo de mensajes de chat aceptados por minuto (para todos los visitantes juntos)
 
 function doPost(e) {
   // Permitir peticiones de cualquier origen (CORS)
@@ -32,7 +45,12 @@ function doPost(e) {
     }
 
     const data = JSON.parse(e.postData.contents);
-    
+
+    // Ruta del proxy de chat con Claude (usada por el simulador de IA de la web)
+    if (data.action === "chat") {
+      return handleChatDemo(data, headers);
+    }
+
     // Validar campos requeridos
     if (!data.name || !data.date || !data.time || !data.service) {
       return createJsonResponse({ success: false, error: "Faltan campos requeridos (nombre, fecha, hora o servicio)" }, headers);
@@ -93,6 +111,63 @@ function doPost(e) {
   } catch (err) {
     return createJsonResponse({ success: false, error: err.message }, headers);
   }
+}
+
+// Proxy de chat: recibe el mensaje del simulador de la web y responde con
+// Claude real, sin exponer nunca la API key al navegador del visitante.
+function handleChatDemo(data, headers) {
+  try {
+    if (!data.userText || !data.systemPrompt) {
+      return createJsonResponse({ success: false, error: "Faltan datos del mensaje" }, headers);
+    }
+
+    if (!isWithinChatRateLimit_()) {
+      return createJsonResponse({ success: false, error: "Límite de mensajes por minuto alcanzado, intenta de nuevo en un momento" }, headers);
+    }
+
+    const apiKey = PropertiesService.getScriptProperties().getProperty("ANTHROPIC_API_KEY");
+    if (!apiKey) {
+      return createJsonResponse({ success: false, error: "ANTHROPIC_API_KEY no configurada en Propiedades del script" }, headers);
+    }
+
+    const response = UrlFetchApp.fetch("https://api.anthropic.com/v1/messages", {
+      method: "post",
+      contentType: "application/json",
+      headers: { "x-api-key": apiKey, "anthropic-version": "2023-06-01" },
+      payload: JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 400,
+        system: String(data.systemPrompt).slice(0, 4000),
+        messages: [{ role: "user", content: String(data.userText).slice(0, 1000) }]
+      }),
+      muteHttpExceptions: true
+    });
+
+    const result = JSON.parse(response.getContentText());
+
+    if (result.content && result.content[0] && result.content[0].text) {
+      return createJsonResponse({ success: true, text: result.content[0].text }, headers);
+    }
+
+    const errMsg = (result.error && result.error.message) ? result.error.message : "Respuesta inesperada de Claude";
+    return createJsonResponse({ success: false, error: errMsg }, headers);
+
+  } catch (err) {
+    return createJsonResponse({ success: false, error: err.message }, headers);
+  }
+}
+
+// Limite simple de peticiones de chat por minuto, compartido entre todos los
+// visitantes, para evitar consumos inesperados en la API de Claude.
+function isWithinChatRateLimit_() {
+  const cache = CacheService.getScriptCache();
+  const key = "chat_calls_" + Math.floor(Date.now() / 60000); // ventana de 1 minuto
+  const current = Number(cache.get(key) || 0);
+  if (current >= CHAT_RATE_LIMIT_PER_MINUTE) {
+    return false;
+  }
+  cache.put(key, String(current + 1), 90); // expira a los 90s, sobra margen para la ventana
+  return true;
 }
 
 // Soporte para peticiones preflight CORS (OPTIONS)
