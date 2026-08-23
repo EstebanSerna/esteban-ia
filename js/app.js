@@ -1592,7 +1592,10 @@ async function testSubscriptionOnly() {
         docType,
         docNumber,
         cardholderName,
-        monthlyAmount: 1000
+        // 1000 choco con el minimo de Mercado Pago ($1.600 COP) sin
+        // decirnos la causa real -- se sube a 10000 para descartar ese
+        // minimo y encontrar el verdadero motivo del fallo.
+        monthlyAmount: 10000
       })
     });
     const data = await res.json();
