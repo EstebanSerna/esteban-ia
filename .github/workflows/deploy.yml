@@ -12,6 +12,14 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# El blog automatico puede hacer varios commits seguidos en una sola
+# publicacion (pagina, portada, indice, manifiesto, sitemap, borrar
+# borrador) -- esto obliga a que los despliegues se procesen en orden, uno
+# a la vez, para que uno mas rapido no sobrescriba a uno mas lento y viejo.
+concurrency:
+  group: deploy-main
+  cancel-in-progress: false
+
 jobs:
   sftp-deploy:
     name: Subir sitio al hosting
@@ -47,3 +55,4 @@ jobs:
           local_path: './dist/*'
           remote_path: '/public_html/'
           sftp_only: true
+          delete_remote_files: true
