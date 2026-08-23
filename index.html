@@ -28,7 +28,7 @@
   <link class="pwa-icon" rel="apple-touch-icon" href="images/icon-192.png">
   
   <!-- CSS Stylesheet (?v= se sube en cada cambio para evitar CSS viejo en caché) -->
-  <link rel="stylesheet" href="css/styles.css?v=6">
+  <link rel="stylesheet" href="css/styles.css?v=7">
 </head>
 <body>
 
@@ -810,14 +810,26 @@
         </p>
 
         <div style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px;">
-          
-          <!-- MERCADO PAGO OPTION -->
-          <a href="#" id="btn-pay-mercadopago-link" target="_blank" rel="noopener" class="payment-option-card" style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; background: rgba(0, 158, 227, 0.08); border: 1px solid rgba(0, 158, 227, 0.3); border-radius: 12px; text-decoration: none; transition: transform 0.2s, border-color 0.2s;">
+
+          <!-- MERCADO PAGO: PAGO UNICO -->
+          <a href="#" id="btn-pay-mercadopago-onetime" target="_blank" rel="noopener" class="payment-option-card" style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; background: rgba(0, 158, 227, 0.08); border: 1px solid rgba(0, 158, 227, 0.3); border-radius: 12px; text-decoration: none; transition: transform 0.2s, border-color 0.2s;">
             <div style="display: flex; align-items: center; gap: 14px;">
               <div style="font-size: 24px;">💳</div>
               <div>
-                <div style="font-size: 14px; font-weight: 700; color: #009ee3;">Pagar con Mercado Pago</div>
-                <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;">Tarjetas de crédito, débito, PSE, Nequi o Efecty (Colombia)</div>
+                <div style="font-size: 14px; font-weight: 700; color: #009ee3;">Pagar Pago Único con Mercado Pago</div>
+                <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;" id="payment-modal-onetime-desc">Tarjetas de crédito, débito, PSE, Nequi o Efecty (Colombia)</div>
+              </div>
+            </div>
+            <span style="font-size: 18px; color: #009ee3;">➔</span>
+          </a>
+
+          <!-- MERCADO PAGO: SUSCRIPCION MENSUAL -->
+          <a href="#" id="btn-pay-mercadopago-subscription" target="_blank" rel="noopener" class="payment-option-card" style="display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; background: rgba(0, 158, 227, 0.08); border: 1px solid rgba(0, 158, 227, 0.3); border-radius: 12px; text-decoration: none; transition: transform 0.2s, border-color 0.2s;">
+            <div style="display: flex; align-items: center; gap: 14px;">
+              <div style="font-size: 24px;">🔁</div>
+              <div>
+                <div style="font-size: 14px; font-weight: 700; color: #009ee3;">Activar Suscripción Mensual</div>
+                <div style="font-size: 11px; color: var(--text-secondary); margin-top: 2px;" id="payment-modal-subscription-desc">Cobro automático mensual de sostenimiento</div>
               </div>
             </div>
             <span style="font-size: 18px; color: #009ee3;">➔</span>
@@ -871,6 +883,6 @@
   </div>
 
   <!-- Javascript Scripts -->
-  <script src="js/app.js?v=7"></script>
+  <script src="js/app.js?v=8"></script>
 </body>
 </html>

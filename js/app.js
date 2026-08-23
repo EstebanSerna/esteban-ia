@@ -1445,24 +1445,34 @@ function initAISimulator() {
 }
 
 // 10. ELEGANT PAYMENT & BOOKING MODAL HANDLER
-// Links de pago por defecto -- actualiza mpDefault/G66_LINK_DEFAULT aqui
-// cuando tengas los links reales de Mercado Pago / Global 66 de cada plan.
+// Links de pago -- actualiza aqui cuando cambien o cuando falten los que
+// todavia estan pendientes (marcados abajo). Ninguno de estos es un dato
+// secreto: son links de cobro publicos de Mercado Pago, pensados para
+// compartirse.
 const G66_LINK_DEFAULT = 'https://global66.com/';
+// Respaldo generico mientras se resuelve el plan de suscripcion que Mercado
+// Pago no dejo crear (Experto y Plataforma) -- lleva a la pagina general de
+// suscripciones en vez de a un plan especifico.
+const MP_SUBSCRIPTION_FALLBACK = 'https://www.mercadopago.com.co/subscriptions#from-section=menu';
+
 const planDetailsMap = {
   'Asistente Basico WhatsApp': {
     title: 'Asistente para Redes Sociales & WhatsApp',
     priceText: 'Inversión: <strong>$1.950.000 COP</strong> + $330.000 COP/mes',
-    mpDefault: 'https://www.mercadopago.com.co/subscriptions#from-section=menu'
+    mpOneTimeLink: 'https://mpago.li/1Jqi4t2',
+    mpSubscriptionLink: 'https://mpago.la/2MpLYRR'
   },
   'Asistente Experto Empresa': {
     title: 'Asistente Experto en tu Empresa',
     priceText: 'Inversión: <strong>$3.450.000 COP</strong> + $520.000 COP/mes',
-    mpDefault: 'https://www.mercadopago.com.co/subscriptions#from-section=menu'
+    mpOneTimeLink: 'https://mpago.li/2vQ8g4n',
+    mpSubscriptionLink: MP_SUBSCRIPTION_FALLBACK // pendiente: plan de suscripcion aun no creado en Mercado Pago
   },
   'Sistema Completo Automatico': {
     title: 'Plataforma Empresarial & Página Web IA',
     priceText: 'Inversión: <strong>$5.900.000 COP</strong> + $890.000 COP/mes',
-    mpDefault: 'https://www.mercadopago.com.co/subscriptions#from-section=menu'
+    mpOneTimeLink: 'https://mpago.li/2tj9sHf',
+    mpSubscriptionLink: MP_SUBSCRIPTION_FALLBACK // pendiente: plan de suscripcion aun no creado en Mercado Pago
   }
 };
 
@@ -1470,7 +1480,9 @@ function openPaymentModal(serviceKey) {
   const modal = document.getElementById('overlay-payment-options');
   const titleEl = document.getElementById('payment-modal-plan-title');
   const priceEl = document.getElementById('payment-modal-plan-price');
-  const mpLink = document.getElementById('btn-pay-mercadopago-link');
+  const mpOneTimeLink = document.getElementById('btn-pay-mercadopago-onetime');
+  const mpSubLink = document.getElementById('btn-pay-mercadopago-subscription');
+  const subDesc = document.getElementById('payment-modal-subscription-desc');
   const g66Link = document.getElementById('btn-pay-global66-link');
   const bookBtn = document.getElementById('btn-pay-book-first');
 
@@ -1479,7 +1491,13 @@ function openPaymentModal(serviceKey) {
   if (titleEl) titleEl.textContent = planInfo.title;
   if (priceEl) priceEl.innerHTML = planInfo.priceText;
 
-  if (mpLink) mpLink.href = planInfo.mpDefault;
+  if (mpOneTimeLink) mpOneTimeLink.href = planInfo.mpOneTimeLink;
+  if (mpSubLink) mpSubLink.href = planInfo.mpSubscriptionLink;
+  if (subDesc) {
+    subDesc.textContent = planInfo.mpSubscriptionLink === MP_SUBSCRIPTION_FALLBACK
+      ? 'Plan aún en configuración — te llevamos a Suscripciones de Mercado Pago'
+      : 'Cobro automático mensual de sostenimiento';
+  }
   if (g66Link) g66Link.href = G66_LINK_DEFAULT;
 
   if (bookBtn) {
