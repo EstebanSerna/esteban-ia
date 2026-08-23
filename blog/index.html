@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blog | Esteban IA — Agentes de IA y Automatización Empresarial</title>
+  <meta name="description" content="Artículos sobre agentes de IA, automatización empresarial y transformación digital para negocios en Colombia.">
+  <link rel="canonical" href="https://esteban-serna.com/blog/">
+  <link rel="icon" type="image/png" sizes="192x192" href="https://esteban-serna.com/images/favicon-192.png">
+  <link rel="stylesheet" href="https://esteban-serna.com/css/styles.css">
+</head>
+<body>
+  <canvas id="quantum-canvas" style="position:fixed; inset:0; z-index:-1;"></canvas>
+  <div class="app-container">
+
+    <header class="main-header">
+      <a href="https://esteban-serna.com/" class="logo-area" id="brand-logo" style="text-decoration:none;">
+        <div class="logo-icon">ES</div>
+        <div class="logo-text-group">
+          <span class="logo-text text-gradient">ESTEBAN SERNA</span>
+          <span class="logo-subtext">IA para Negocios</span>
+        </div>
+      </a>
+      <nav class="nav-links" id="nav-links">
+        <a href="https://esteban-serna.com/" class="nav-item">Inicio</a>
+        <a href="https://esteban-serna.com/#servicios" class="nav-item">¿Qué hace la IA?</a>
+        <a href="https://esteban-serna.com/#planes" class="nav-item">Servicios</a>
+        <a href="https://esteban-serna.com/blog/" class="nav-item">Blog</a>
+        <a href="https://esteban-serna.com/#reservar" class="nav-item">Agendar</a>
+      </nav>
+      <button class="menu-btn" id="mobile-menu-trigger" aria-label="Abrir menú" aria-expanded="false">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line class="menu-icon-line menu-icon-top" x1="3" y1="12" x2="21" y2="12"></line>
+          <line class="menu-icon-line menu-icon-mid" x1="3" y1="6" x2="21" y2="6"></line>
+          <line class="menu-icon-line menu-icon-bottom" x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+    </header>
+    <section class="section" style="max-width: 1100px; margin: 0 auto;">
+      <div class="section-header">
+        <div class="section-tagline">BLOG</div>
+        <h1 class="section-title text-gradient">Agentes de IA y Automatización Empresarial</h1>
+        <p class="section-description">Artículos sobre cómo la inteligencia artificial puede transformar la operación de tu negocio en Colombia.</p>
+      </div>
+      <div class="insights-grid">
+
+        <a href="https://esteban-serna.com/blog/posts/optimizacion-procesos-empresariales-con-ia.html" class="insight-card" style="text-decoration:none; display:block; overflow:hidden; padding:0;">
+          <img src="https://esteban-serna.com/blog/posts/optimizacion-procesos-empresariales-con-ia-cover.png" alt="Optimización de procesos empresariales con IA: guía 2026" style="width:100%; height:160px; object-fit:cover; display:block;">
+          <div style="padding: 20px;">
+            <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">23 de agosto de 2026</div>
+            <h3 class="insight-card-title">Optimización de procesos empresariales con IA: guía 2026</h3>
+            <p class="insight-card-text">Te explicamos en palabras sencillas qué es la optimización de procesos con IA, qué procesos automatizar primero y cómo dar el primer paso sin arriesgar tu operación.</p>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <footer class="main-footer">
+      <div class="footer-logo">ESTEBAN IA</div>
+      <p class="footer-quote">"El contexto es el argumento decisivo de los resultados de tu negocio. Cambiemos tu contexto operativo con Inteligencia Artificial."</p>
+      <div class="footer-links">
+        <a href="https://esteban-serna.com/">Inicio</a>
+        <a href="https://esteban-serna.com/#servicios">¿Qué hace la IA?</a>
+        <a href="https://esteban-serna.com/#sobre-mi">Sobre Esteban</a>
+        <a href="https://esteban-serna.com/#planes">Servicios</a>
+        <a href="https://esteban-serna.com/blog/">Blog</a>
+        <a href="https://esteban-serna.com/#reservar">Reservar</a>
+      </div>
+      <div class="footer-copyright">&copy; 2026 Esteban Serna. Todos los derechos reservados.<br>Implementación de IA &amp; Automatizaciones Empresariales.</div>
+    </footer>
+  </div>
+
+  <script>
+    (function() {
+      var btn = document.getElementById('mobile-menu-trigger');
+      var nav = document.getElementById('nav-links');
+      if (!btn || !nav) return;
+      btn.addEventListener('click', function() {
+        var open = nav.classList.toggle('mobile-open');
+        btn.classList.toggle('active', open);
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+    })();
+  </script>
+</body>
+</html>
