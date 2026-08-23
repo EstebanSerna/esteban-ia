@@ -32,28 +32,21 @@ const ESTEBAN_EMAIL = "esteban.serna.garcia@gmail.com"; // Reemplaza por tu corr
 const CHAT_RATE_LIMIT_PER_MINUTE = 20; // Maximo de mensajes de chat aceptados por minuto (para todos los visitantes juntos)
 
 function doPost(e) {
-  // Permitir peticiones de cualquier origen (CORS)
-  const headers = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type"
-  };
-
   try {
     if (!e || !e.postData || !e.postData.contents) {
-      return createJsonResponse({ success: false, error: "No se enviaron datos" }, headers);
+      return createJsonResponse({ success: false, error: "No se enviaron datos" });
     }
 
     const data = JSON.parse(e.postData.contents);
 
     // Ruta del proxy de chat con Claude (usada por el simulador de IA de la web)
     if (data.action === "chat") {
-      return handleChatDemo(data, headers);
+      return handleChatDemo(data);
     }
 
     // Validar campos requeridos
     if (!data.name || !data.date || !data.time || !data.service) {
-      return createJsonResponse({ success: false, error: "Faltan campos requeridos (nombre, fecha, hora o servicio)" }, headers);
+      return createJsonResponse({ success: false, error: "Faltan campos requeridos (nombre, fecha, hora o servicio)" });
     }
 
     // Parsear fecha y hora
@@ -101,33 +94,33 @@ function doPost(e) {
       );
     }
 
-    return createJsonResponse({ 
-      success: true, 
+    return createJsonResponse({
+      success: true,
       eventId: event.getId(),
       startTime: startDate.toISOString(),
       endTime: endDate.toISOString()
-    }, headers);
+    });
 
   } catch (err) {
-    return createJsonResponse({ success: false, error: err.message }, headers);
+    return createJsonResponse({ success: false, error: err.message });
   }
 }
 
 // Proxy de chat: recibe el mensaje del simulador de la web y responde con
 // Claude real, sin exponer nunca la API key al navegador del visitante.
-function handleChatDemo(data, headers) {
+function handleChatDemo(data) {
   try {
     if (!data.userText || !data.systemPrompt) {
-      return createJsonResponse({ success: false, error: "Faltan datos del mensaje" }, headers);
+      return createJsonResponse({ success: false, error: "Faltan datos del mensaje" });
     }
 
     if (!isWithinChatRateLimit_()) {
-      return createJsonResponse({ success: false, error: "Límite de mensajes por minuto alcanzado, intenta de nuevo en un momento" }, headers);
+      return createJsonResponse({ success: false, error: "Límite de mensajes por minuto alcanzado, intenta de nuevo en un momento" });
     }
 
     const apiKey = PropertiesService.getScriptProperties().getProperty("ANTHROPIC_API_KEY");
     if (!apiKey) {
-      return createJsonResponse({ success: false, error: "ANTHROPIC_API_KEY no configurada en Propiedades del script" }, headers);
+      return createJsonResponse({ success: false, error: "ANTHROPIC_API_KEY no configurada en Propiedades del script" });
     }
 
     const response = UrlFetchApp.fetch("https://api.anthropic.com/v1/messages", {
@@ -146,14 +139,14 @@ function handleChatDemo(data, headers) {
     const result = JSON.parse(response.getContentText());
 
     if (result.content && result.content[0] && result.content[0].text) {
-      return createJsonResponse({ success: true, text: result.content[0].text }, headers);
+      return createJsonResponse({ success: true, text: result.content[0].text });
     }
 
     const errMsg = (result.error && result.error.message) ? result.error.message : "Respuesta inesperada de Claude";
-    return createJsonResponse({ success: false, error: errMsg }, headers);
+    return createJsonResponse({ success: false, error: errMsg });
 
   } catch (err) {
-    return createJsonResponse({ success: false, error: err.message }, headers);
+    return createJsonResponse({ success: false, error: err.message });
   }
 }
 
@@ -171,26 +164,21 @@ function isWithinChatRateLimit_() {
 }
 
 // Soporte para peticiones preflight CORS (OPTIONS)
+// Nota: ContentService.TextOutput de Apps Script no tiene un método
+// setHeaders() (nunca lo tuvo) - llamarlo rompe la respuesta con un
+// TypeError. Las peticiones reales de este sitio van con
+// Content-Type: text/plain, por lo que el navegador las trata como
+// "simple request" y no dispara preflight OPTIONS; por eso no hace falta
+// (ni es posible) fijar cabeceras CORS a mano aqui.
 function doOptions(e) {
-  const headers = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
-    "Access-Control-Max-Age": "86400"
-  };
   return ContentService.createTextOutput("")
-                       .setMimeType(ContentService.MimeType.TEXT)
-                       .setHeaders(headers);
+                       .setMimeType(ContentService.MimeType.TEXT);
 }
 
-// Función auxiliar para responder JSON limpio con cabeceras CORS
-function createJsonResponse(obj, headers) {
-  const output = ContentService.createTextOutput(JSON.stringify(obj))
-                               .setMimeType(ContentService.MimeType.JSON);
-  if (headers) {
-    output.setHeaders(headers);
-  }
-  return output;
+// Función auxiliar para responder JSON limpio
+function createJsonResponse(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj))
+                       .setMimeType(ContentService.MimeType.JSON);
 }
 
 // Analizador de fechas y horas en español
