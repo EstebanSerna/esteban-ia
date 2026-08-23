@@ -1457,11 +1457,9 @@ function initAISimulator() {
 const planDetailsMap = {
   'Asistente Basico WhatsApp': {
     title: 'Asistente para Redes Sociales & WhatsApp',
-    // TEMPORAL: monto de prueba para validar el checkout completo contra
-    // Railway en el sitio real. Revertir a $1.950.000 / $330.000 despues.
-    priceText: 'Inversión: <strong>$50.000 COP</strong> + $5.000 COP/mes',
-    oneTimeAmount: 50000,
-    monthlyAmount: 5000
+    priceText: 'Inversión: <strong>$1.950.000 COP</strong> + $330.000 COP/mes',
+    oneTimeAmount: 1950000,
+    monthlyAmount: 330000
   },
   'Asistente Experto Empresa': {
     title: 'Asistente Experto en tu Empresa',
