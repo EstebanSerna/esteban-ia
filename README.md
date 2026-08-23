@@ -18,6 +18,8 @@ Plataforma web interactiva, embudo de ventas de alta conversión y Progressive W
 - 📅 **Motor de Reservas Integrado**: Agendamiento en 4 pasos (Fecha, Hora, Servicio, Datos del Cliente), sincronizado directo a Google Calendar.
 - ⚙️ **Integración con Google Calendar (Google Apps Script)**: Backend sin servidor (`google-apps-script.js`) que crea eventos automáticamente en Google Calendar y envía invitaciones por correo electrónico.
 - 📱 **Progressive Web App (PWA)**: Compatible con instalación en dispositivos móviles y de escritorio (`manifest.json` y `sw.js`).
+- 📝 **Blog con Artículos Automáticos**: cada 3 días se investiga y redacta un artículo original con IA (revisado por correo antes de publicarse) — ver sección de Blog más abajo.
+- 📈 **SEO y Analítica**: Google Analytics 4, Microsoft Clarity, datos estructurados (Schema.org) y sección de Preguntas Frecuentes optimizada para posicionar en Google.
 
 ---
 
@@ -94,6 +96,18 @@ El mismo backend procesa el pago único de implementación y activa la suscripci
 3. Nombre: `MP_ACCESS_TOKEN`, Valor: tu Access Token. Guardar.
 4. La constante `WEBHOOK_NOTIFICATION_URL` en `google-apps-script.js` debe apuntar a la URL `/exec` de esta misma implementación (ya viene configurada); Mercado Pago la usa para avisar por Webhook cuando cambia el estado de un pago.
 5. En el panel de Mercado Pago (**Tu app → Webhooks**), registra esa misma URL `/exec` con el evento **Pagos**.
+
+---
+
+## 📝 Blog Automático
+
+La carpeta `blog/` de este repo se genera sola, no se edita a mano: cada 3 días, el backend
+(`esteban-ia-backend` en Railway) elige un tema, lo investiga con IA (búsqueda web real) y escribe
+un artículo 100% original con su propia imagen de portada. Antes de publicarse, llega un correo con
+el artículo completo y dos botones — **Publicar** o **Descartar** — así que nada sale al público sin
+revisión. Al aprobar uno, el backend sube las páginas finales directo a este repo, lo que dispara un
+despliegue automático igual que cualquier otro cambio. Ver `esteban-ia-backend/README.md` (sección
+"Blog automático") para el detalle técnico completo.
 
 ---
 
