@@ -1452,9 +1452,9 @@ function initAISimulator() {
 const planDetailsMap = {
   'Asistente Basico WhatsApp': {
     title: 'Asistente para Redes Sociales & WhatsApp (PRUEBA REAL — precio temporal)',
-    priceText: 'PRUEBA de activación: <strong>$3.000 COP</strong> + $2.000 COP/mes',
-    oneTimeAmount: 3000,
-    monthlyAmount: 2000
+    priceText: 'PRUEBA de activación: <strong>$50.000 COP</strong> + $5.000 COP/mes',
+    oneTimeAmount: 50000,
+    monthlyAmount: 5000
   },
   'Asistente Experto Empresa': {
     title: 'Asistente Experto en tu Empresa',
