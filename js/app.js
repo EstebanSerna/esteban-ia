@@ -1451,10 +1451,10 @@ function initAISimulator() {
 // suscrito a la mensualidad.
 const planDetailsMap = {
   'Asistente Basico WhatsApp': {
-    title: 'Asistente para Redes Sociales & WhatsApp',
-    priceText: 'Inversión: <strong>$1.950.000 COP</strong> + $330.000 COP/mes',
-    oneTimeAmount: 1950000,
-    monthlyAmount: 330000
+    title: 'Asistente para Redes Sociales & WhatsApp (PRUEBA REAL — precio temporal)',
+    priceText: 'PRUEBA de activación: <strong>$3.000 COP</strong> + $2.000 COP/mes',
+    oneTimeAmount: 3000,
+    monthlyAmount: 2000
   },
   'Asistente Experto Empresa': {
     title: 'Asistente Experto en tu Empresa',
@@ -1509,11 +1509,9 @@ function openPaymentModal(serviceKey) {
 window.openPaymentModal = openPaymentModal;
 
 // ── CHECKOUT EMBEBIDO DE MERCADO PAGO (1 sola tarjeta -> pago unico + suscripcion) ──
-// Public Key: NO es secreta, esta pensada para vivir en el navegador del cliente.
-// Ahora mismo es la de PRUEBA (TEST-...) mientras probamos el flujo completo en
-// sandbox. Cuando este todo validado, cambiar por la Public Key de PRODUCCION
-// (empieza con APP_USR-...) desde Mercado Pago Developers > Credenciales.
-const MP_PUBLIC_KEY = 'TEST-0eb80b93-c64f-4c05-8068-1554d1065f81';
+// Public Key de PRODUCCION: NO es secreta, esta pensada para vivir en el
+// navegador del cliente. A partir de aqui los cobros son con dinero real.
+const MP_PUBLIC_KEY = 'APP_USR-571a6f8c-dc56-47c6-92e3-858492e3b614';
 
 let mpInstance = null;
 let mpDetectedPaymentMethodId = null;
