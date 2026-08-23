@@ -346,7 +346,11 @@ function handleMercadoPagoCheckout(data) {
         success: false,
         paymentApproved: true,
         subscriptionActive: false,
-        error: "El pago se procesó pero la suscripción no pudo activarse"
+        error: "El pago se procesó pero la suscripción no pudo activarse",
+        // TEMPORAL: se manda la respuesta cruda de Mercado Pago directo al
+        // navegador para diagnosticar sin depender del panel de Ejecuciones
+        // de Apps Script (que no se pudo abrir). Quitar una vez resuelto.
+        debugSubResult: activation.subResult
       });
     }
 

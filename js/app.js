@@ -1734,7 +1734,11 @@ async function handleMercadoPagoCheckoutSubmit(e) {
       showMpCheckoutStatus('success', `✅ ¡Listo! Tu pago fue aprobado. Tu mensualidad de sostenimiento queda programada para empezar a cobrarse en 30 días — el primer mes corre por nuestra cuenta mientras hacemos la implementación. Te contactaremos por WhatsApp en breve para arrancar, y te enviamos la confirmación a ${payerEmail}.`);
       if (form) form.reset();
     } else if (data.paymentApproved && !data.subscriptionActive) {
-      showMpCheckoutStatus('warning', '⚠️ Tu pago único se procesó correctamente, pero hubo un problema activando la mensualidad automática. Te contactaremos por WhatsApp para completarla — no te preocupes.');
+      // TEMPORAL: se muestra el detalle crudo de Mercado Pago en pantalla
+      // para diagnosticar el fallo de la suscripcion sin depender del panel
+      // de Ejecuciones de Apps Script. Quitar una vez resuelto.
+      const debugSuffix = data.debugSubResult ? '\n\n[DEBUG] ' + JSON.stringify(data.debugSubResult, null, 2) : '';
+      showMpCheckoutStatus('warning', '⚠️ Tu pago único se procesó correctamente, pero hubo un problema activando la mensualidad automática. Te contactaremos por WhatsApp para completarla — no te preocupes.' + debugSuffix);
     } else if (data.paymentPending) {
       showMpCheckoutStatus('warning', `⏳ ${data.error || 'Tu pago quedó en revisión, te confirmaremos pronto.'}`);
     } else {
