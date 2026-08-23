@@ -401,10 +401,38 @@ function activateSubscriptionAndNotify_(data, paymentResult) {
     // No bloquea la respuesta al cliente si falla el registro en calendario
   }
 
-  // Avisar por correo para arrancar la implementacion cuanto antes
+  // Avisar por correo para arrancar la implementacion cuanto antes, y
+  // avisarle tambien al cliente que su compra quedo lista.
   notifySuccessfulSale_(data, paymentResult, subResult, startDate);
+  sendWelcomeEmailToCustomer_(data, paymentResult, subResult, startDate);
 
   return { subscriptionActive: true, subResult: subResult };
+}
+
+// Correo de bienvenida para el CLIENTE (no para Esteban) -- confirma que su
+// compra quedo lista y que se le va a contactar por WhatsApp. Se envia solo
+// cuando la venta se completa de verdad (pago + suscripcion activados).
+function sendWelcomeEmailToCustomer_(data, paymentResult, subResult, subscriptionStartDate) {
+  try {
+    MailApp.sendEmail({
+      to: data.payerEmail,
+      subject: "🎉 ¡Bienvenido a Esteban IA! Tu " + (data.planTitle || "plan") + " ya está en marcha",
+      body:
+        "Hola" + (data.cardholderName ? " " + data.cardholderName : "") + ",\n\n" +
+        "¡Gracias por confiar en Esteban IA! Tu pago se procesó con éxito y ya estamos listos para empezar a implementar tu " + (data.planTitle || "asistente de IA") + ".\n\n" +
+        "Resumen de tu compra:\n" +
+        "• Plan: " + (data.planTitle || "-") + "\n" +
+        "• Pago único (implementación): $" + data.oneTimeAmount + " COP\n" +
+        "• Sostenimiento mensual: $" + data.monthlyAmount + " COP/mes — el primer mes corre por nuestra cuenta, tu primer cobro será el " +
+        subscriptionStartDate.toLocaleDateString("es-CO") + "\n\n" +
+        "¿Qué sigue? Te contactaremos muy pronto por WhatsApp al número que nos dejaste para coordinar el inicio de la implementación.\n\n" +
+        "Si tienes cualquier duda mientras tanto, puedes responder directamente a este correo.\n\n" +
+        "¡Bienvenido a bordo!\n" +
+        "Esteban Serna — Esteban IA"
+    });
+  } catch (mailErr) {
+    console.error("Fallo el envio del correo de bienvenida al cliente: " + mailErr.message);
+  }
 }
 
 // TEMPORAL -- herramienta de diagnostico: prueba UNICAMENTE la creacion de
