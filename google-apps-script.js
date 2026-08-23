@@ -12,6 +12,11 @@
  *    (la consigues en https://console.anthropic.com/settings/keys).
  *    Esto la guarda cifrada del lado del servidor; nunca llega al navegador
  *    ni queda visible en este código.
+ * 5b. Igual, agrega otra Propiedad del script llamada MP_ACCESS_TOKEN con tu
+ *    Access Token de Mercado Pago (Developers > Tus integraciones > tu app >
+ *    Credenciales de prueba/producción). Mientras se prueba el checkout usa
+ *    el Access Token de PRUEBA; cuando esté todo validado, cámbialo por el
+ *    de producción (y la Public Key en app.js) para cobrar de verdad.
  * 6. Haz clic en "Implementar" (Deploy) > "Nueva implementación" (New deployment).
  * 7. Tipo: "Aplicación web" (Web app).
  * 8. Configuración:
@@ -30,6 +35,7 @@
 
 const ESTEBAN_EMAIL = "esteban.serna.garcia@gmail.com"; // Reemplaza por tu correo real si es diferente
 const CHAT_RATE_LIMIT_PER_MINUTE = 20; // Maximo de mensajes de chat aceptados por minuto (para todos los visitantes juntos)
+const CHECKOUT_RATE_LIMIT_PER_MINUTE = 10; // Maximo de intentos de pago aceptados por minuto (para todos los visitantes juntos)
 
 function doPost(e) {
   try {
@@ -42,6 +48,11 @@ function doPost(e) {
     // Ruta del proxy de chat con Claude (usada por el simulador de IA de la web)
     if (data.action === "chat") {
       return handleChatDemo(data);
+    }
+
+    // Ruta del checkout de Mercado Pago (pago unico + suscripcion en un solo paso)
+    if (data.action === "mp_checkout") {
+      return handleMercadoPagoCheckout(data);
     }
 
     // Validar campos requeridos
@@ -170,6 +181,184 @@ function isWithinChatRateLimit_() {
   }
   cache.put(key, String(current + 1), 90); // expira a los 90s, sobra margen para la ventana
   return true;
+}
+
+// Checkout de Mercado Pago: cobra el pago unico y, si se aprueba, activa la
+// suscripcion mensual con un SEGUNDO token de la misma tarjeta (un CardToken
+// de Mercado Pago solo sirve una vez, por eso el front manda dos). El
+// Access Token de Mercado Pago vive solo en Propiedades del script, nunca
+// llega al navegador del cliente.
+function handleMercadoPagoCheckout(data) {
+  try {
+    if (!data.oneTimeToken || !data.subscriptionToken || !data.paymentMethodId || !data.payerEmail || !data.oneTimeAmount || !data.monthlyAmount) {
+      return createJsonResponse({ success: false, error: "Faltan datos para procesar el pago" });
+    }
+
+    if (!isWithinCheckoutRateLimit_()) {
+      return createJsonResponse({ success: false, error: "Demasiados intentos de pago en poco tiempo. Espera un momento e intenta de nuevo." });
+    }
+
+    const accessToken = PropertiesService.getScriptProperties().getProperty("MP_ACCESS_TOKEN");
+    if (!accessToken) {
+      return createJsonResponse({ success: false, error: "MP_ACCESS_TOKEN no configurado en Propiedades del script" });
+    }
+
+    // 1) Cobrar el pago único con el primer token
+    const paymentBody = {
+      transaction_amount: Number(data.oneTimeAmount),
+      token: data.oneTimeToken,
+      description: (data.planTitle || "Implementación Esteban IA") + " - Pago Único",
+      installments: 1,
+      payment_method_id: data.paymentMethodId,
+      payer: {
+        email: data.payerEmail,
+        identification: {
+          type: data.docType || "CC",
+          number: data.docNumber || ""
+        }
+      }
+    };
+    if (data.issuerId) paymentBody.issuer_id = data.issuerId;
+
+    const paymentResponse = UrlFetchApp.fetch("https://api.mercadopago.com/v1/payments", {
+      method: "post",
+      contentType: "application/json",
+      headers: {
+        "Authorization": "Bearer " + accessToken,
+        "X-Idempotency-Key": Utilities.getUuid()
+      },
+      payload: JSON.stringify(paymentBody),
+      muteHttpExceptions: true
+    });
+
+    const paymentResult = JSON.parse(paymentResponse.getContentText());
+
+    if (paymentResult.status !== "approved") {
+      const reason = translatePaymentStatusDetail_(paymentResult.status_detail) || paymentResult.message || "Tu pago no fue aprobado";
+      return createJsonResponse({ success: false, paymentApproved: false, error: reason });
+    }
+
+    // 2) Pago aprobado -> activar la suscripción mensual con el SEGUNDO token
+    const subscriptionBody = {
+      payer_email: data.payerEmail,
+      card_token_id: data.subscriptionToken,
+      reason: (data.planTitle || "Esteban IA") + " - Sostenimiento Mensual",
+      external_reference: "sub_" + (data.serviceKey || "plan").replace(/\s+/g, "_") + "_" + Date.now(),
+      back_url: "https://esteban-serna.com/",
+      status: "authorized",
+      auto_recurring: {
+        frequency: 1,
+        frequency_type: "months",
+        transaction_amount: Number(data.monthlyAmount),
+        currency_id: "COP"
+      }
+    };
+
+    const subResponse = UrlFetchApp.fetch("https://api.mercadopago.com/preapproval", {
+      method: "post",
+      contentType: "application/json",
+      headers: { "Authorization": "Bearer " + accessToken },
+      payload: JSON.stringify(subscriptionBody),
+      muteHttpExceptions: true
+    });
+
+    const subResult = JSON.parse(subResponse.getContentText());
+    const subscriptionActive = subResult.status === "authorized" || subResult.status === "pending";
+
+    if (!subscriptionActive) {
+      // El dinero del pago único ya se cobró pero la suscripción no quedó
+      // activa: se avisa por correo para que Esteban le dé seguimiento manual.
+      notifyPartialCheckoutFailure_(data, paymentResult, subResult);
+      return createJsonResponse({
+        success: false,
+        paymentApproved: true,
+        subscriptionActive: false,
+        error: "El pago se procesó pero la suscripción no pudo activarse"
+      });
+    }
+
+    // Registrar la venta en el calendario, igual que una reserva normal
+    try {
+      const calendar = CalendarApp.getDefaultCalendar();
+      calendar.createEvent(
+        "Venta: " + (data.cardholderName || data.payerEmail) + " (" + (data.planTitle || "Plan") + ")",
+        new Date(),
+        new Date(Date.now() + 30 * 60 * 1000),
+        {
+          description:
+            "Pago único: $" + data.oneTimeAmount + " COP\n" +
+            "Suscripción: $" + data.monthlyAmount + " COP/mes\n" +
+            "Correo: " + data.payerEmail + "\n" +
+            "ID Pago: " + paymentResult.id + "\n" +
+            "ID Suscripción: " + subResult.id
+        }
+      );
+    } catch (calErr) {
+      // No bloquea la respuesta al cliente si falla el registro en calendario
+    }
+
+    return createJsonResponse({
+      success: true,
+      paymentApproved: true,
+      subscriptionActive: true,
+      paymentId: paymentResult.id,
+      subscriptionId: subResult.id
+    });
+
+  } catch (err) {
+    return createJsonResponse({ success: false, error: err.message });
+  }
+}
+
+// Limite simple de intentos de pago por minuto, compartido entre todos los
+// visitantes, para frenar reintentos automatizados contra la API de pagos.
+function isWithinCheckoutRateLimit_() {
+  const cache = CacheService.getScriptCache();
+  const key = "checkout_calls_" + Math.floor(Date.now() / 60000);
+  const current = Number(cache.get(key) || 0);
+  if (current >= CHECKOUT_RATE_LIMIT_PER_MINUTE) {
+    return false;
+  }
+  cache.put(key, String(current + 1), 90);
+  return true;
+}
+
+// Traduce los codigos mas comunes de rechazo de Mercado Pago a un mensaje
+// entendible para el cliente. Si no se reconoce el codigo, se deja que el
+// llamador use un mensaje generico de respaldo.
+function translatePaymentStatusDetail_(statusDetail) {
+  const map = {
+    cc_rejected_insufficient_amount: "Tu tarjeta no tiene fondos suficientes.",
+    cc_rejected_bad_filled_security_code: "El código de seguridad (CVV) es incorrecto.",
+    cc_rejected_bad_filled_date: "La fecha de vencimiento es incorrecta.",
+    cc_rejected_bad_filled_other: "Revisa los datos de tu tarjeta e intenta de nuevo.",
+    cc_rejected_bad_filled_card_number: "El número de tarjeta es incorrecto.",
+    cc_rejected_call_for_authorize: "Tu banco requiere que autorices el pago directamente con ellos.",
+    cc_rejected_card_disabled: "Tu tarjeta está deshabilitada. Contacta a tu banco o usa otra tarjeta.",
+    cc_rejected_duplicated_payment: "Ya se registró un pago igual hace poco. Si no fuiste tú, contáctanos.",
+    cc_rejected_high_risk: "El pago fue rechazado por seguridad. Prueba con otra tarjeta.",
+    cc_rejected_max_attempts: "Alcanzaste el máximo de intentos permitidos con esta tarjeta.",
+    cc_rejected_other_reason: "Tu banco rechazó el pago. Prueba con otra tarjeta o método."
+  };
+  return map[statusDetail] || null;
+}
+
+// Notifica por correo cuando el pago único se cobró pero la suscripción no
+// pudo activarse, para que se pueda completar manualmente con el cliente.
+function notifyPartialCheckoutFailure_(data, paymentResult, subResult) {
+  try {
+    MailApp.sendEmail({
+      to: ESTEBAN_EMAIL,
+      subject: "⚠️ Pago cobrado pero suscripción NO activada — " + (data.planTitle || ""),
+      body:
+        "Se cobró el pago único a " + data.payerEmail + " (ID de pago: " + paymentResult.id + ") " +
+        "pero la suscripción mensual no se pudo activar.\n\n" +
+        "Detalle de Mercado Pago:\n" + JSON.stringify(subResult, null, 2) + "\n\n" +
+        "Contacta al cliente para completar la suscripción manualmente, o reintenta desde el panel de Mercado Pago."
+    });
+  } catch (mailErr) {
+    // Si falla el envio del correo no se bloquea el flujo principal
+  }
 }
 
 // Soporte para peticiones preflight CORS (OPTIONS)

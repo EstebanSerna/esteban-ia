@@ -1458,22 +1458,30 @@ const planDetailsMap = {
   'Asistente Basico WhatsApp': {
     title: 'Asistente para Redes Sociales & WhatsApp',
     priceText: 'Inversión: <strong>$1.950.000 COP</strong> + $330.000 COP/mes',
+    oneTimeAmount: 1950000,
+    monthlyAmount: 330000,
     mpOneTimeLink: 'https://mpago.li/1Jqi4t2',
     mpSubscriptionLink: 'https://mpago.la/2MpLYRR'
   },
   'Asistente Experto Empresa': {
     title: 'Asistente Experto en tu Empresa',
     priceText: 'Inversión: <strong>$3.450.000 COP</strong> + $520.000 COP/mes',
+    oneTimeAmount: 3450000,
+    monthlyAmount: 520000,
     mpOneTimeLink: 'https://mpago.li/2vQ8g4n',
     mpSubscriptionLink: MP_SUBSCRIPTION_FALLBACK // pendiente: plan de suscripcion aun no creado en Mercado Pago
   },
   'Sistema Completo Automatico': {
     title: 'Plataforma Empresarial & Página Web IA',
     priceText: 'Inversión: <strong>$5.900.000 COP</strong> + $890.000 COP/mes',
+    oneTimeAmount: 5900000,
+    monthlyAmount: 890000,
     mpOneTimeLink: 'https://mpago.li/2tj9sHf',
     mpSubscriptionLink: MP_SUBSCRIPTION_FALLBACK // pendiente: plan de suscripcion aun no creado en Mercado Pago
   }
 };
+
+let currentCheckoutServiceKey = 'Asistente Experto Empresa';
 
 function openPaymentModal(serviceKey) {
   const modal = document.getElementById('overlay-payment-options');
@@ -1485,6 +1493,7 @@ function openPaymentModal(serviceKey) {
   const bookBtn = document.getElementById('btn-pay-book-first');
 
   const planInfo = planDetailsMap[serviceKey] || planDetailsMap['Asistente Experto Empresa'];
+  currentCheckoutServiceKey = planDetailsMap[serviceKey] ? serviceKey : 'Asistente Experto Empresa';
 
   if (titleEl) titleEl.textContent = planInfo.title;
   if (priceEl) priceEl.innerHTML = planInfo.priceText;
@@ -1497,11 +1506,22 @@ function openPaymentModal(serviceKey) {
       : 'Cobro automático mensual de sostenimiento';
   }
 
-  // Colapsar los datos de Global 66 cada vez que se abre el modal de nuevo
+  // Colapsar los datos de Global 66 y el pago por separado cada vez que se abre el modal
   const g66Details = document.getElementById('global66-details');
   const g66Icon = document.getElementById('global66-toggle-icon');
   if (g66Details) g66Details.style.display = 'none';
   if (g66Icon) g66Icon.textContent = '▾';
+
+  const mpSepDetails = document.getElementById('mp-separate-details');
+  const mpSepIcon = document.getElementById('mp-separate-toggle-icon');
+  if (mpSepDetails) mpSepDetails.style.display = 'none';
+  if (mpSepIcon) mpSepIcon.textContent = '▾';
+
+  // Limpiar el formulario de checkout embebido y su mensaje de estado
+  const checkoutForm = document.getElementById('mp-checkout-form');
+  if (checkoutForm) checkoutForm.reset();
+  const checkoutStatus = document.getElementById('mp-checkout-status');
+  if (checkoutStatus) checkoutStatus.style.display = 'none';
 
   if (bookBtn) {
     bookBtn.onclick = () => {
@@ -1514,6 +1534,163 @@ function openPaymentModal(serviceKey) {
 }
 
 window.openPaymentModal = openPaymentModal;
+
+// ── CHECKOUT EMBEBIDO DE MERCADO PAGO (1 sola tarjeta -> pago unico + suscripcion) ──
+// Public Key: NO es secreta, esta pensada para vivir en el navegador del cliente.
+// Ahora mismo es la de PRUEBA (TEST-...) mientras probamos el flujo completo en
+// sandbox. Cuando este todo validado, cambiar por la Public Key de PRODUCCION
+// (empieza con APP_USR-...) desde Mercado Pago Developers > Credenciales.
+const MP_PUBLIC_KEY = 'TEST-0eb80b93-c64f-4c05-8068-1554d1065f81';
+
+let mpInstance = null;
+let mpDetectedPaymentMethodId = null;
+let mpDetectedIssuerId = null;
+
+function initMercadoPagoCheckout() {
+  if (typeof MercadoPago === 'undefined') {
+    console.warn('SDK de Mercado Pago no cargó; el checkout embebido queda deshabilitado (quedan los links de pago por separado).');
+    return;
+  }
+
+  mpInstance = new MercadoPago(MP_PUBLIC_KEY, { locale: 'es-CO' });
+
+  const cardNumberField = mpInstance.fields.create('cardNumber', { placeholder: '•••• •••• •••• ••••' }).mount('mp-card-number');
+  mpInstance.fields.create('expirationDate', { placeholder: 'MM/AA' }).mount('mp-card-expiration');
+  mpInstance.fields.create('securityCode', { placeholder: 'CVV' }).mount('mp-card-cvv');
+
+  // Detecta el medio de pago (Visa/Mastercard/etc.) a partir del BIN, sin
+  // exponer nunca el numero completo de la tarjeta a nuestro codigo.
+  cardNumberField.on('binChange', async (data) => {
+    try {
+      const bin = data && data.bin;
+      if (!bin) { mpDetectedPaymentMethodId = null; mpDetectedIssuerId = null; return; }
+      const { results } = await mpInstance.getPaymentMethods({ bin });
+      if (results && results[0]) {
+        mpDetectedPaymentMethodId = results[0].id;
+        mpDetectedIssuerId = (results[0].issuer && results[0].issuer.id) || null;
+      }
+    } catch (err) {
+      console.warn('No se pudo detectar el medio de pago:', err);
+      mpDetectedPaymentMethodId = null;
+    }
+  });
+
+  // Toggle de "pagar por separado en Mercado Pago"
+  const toggleBtn = document.getElementById('btn-toggle-mp-separate');
+  const details = document.getElementById('mp-separate-details');
+  const icon = document.getElementById('mp-separate-toggle-icon');
+  if (toggleBtn && details) {
+    toggleBtn.addEventListener('click', () => {
+      const isOpen = details.style.display === 'flex';
+      details.style.display = isOpen ? 'none' : 'flex';
+      if (icon) icon.textContent = isOpen ? '▾' : '▴';
+    });
+  }
+
+  const form = document.getElementById('mp-checkout-form');
+  if (form) form.addEventListener('submit', handleMercadoPagoCheckoutSubmit);
+}
+
+function showMpCheckoutStatus(type, message) {
+  const statusEl = document.getElementById('mp-checkout-status');
+  if (!statusEl) return;
+  const palette = {
+    success: { bg: 'rgba(46,204,113,0.1)', border: 'rgba(46,204,113,0.35)', text: '#2ecc71' },
+    warning: { bg: 'rgba(241,196,15,0.1)', border: 'rgba(241,196,15,0.35)', text: '#f1c40f' },
+    error: { bg: 'rgba(231,76,60,0.1)', border: 'rgba(231,76,60,0.35)', text: '#e74c3c' },
+    info: { bg: 'rgba(255,255,255,0.05)', border: 'rgba(255,255,255,0.15)', text: '#fff' }
+  };
+  const c = palette[type] || palette.info;
+  statusEl.style.display = 'block';
+  statusEl.style.background = c.bg;
+  statusEl.style.border = `1px solid ${c.border}`;
+  statusEl.style.color = c.text;
+  statusEl.textContent = message;
+}
+
+async function handleMercadoPagoCheckoutSubmit(e) {
+  e.preventDefault();
+  const submitBtn = document.getElementById('btn-mp-checkout-submit');
+  const form = document.getElementById('mp-checkout-form');
+
+  const cardholderName = document.getElementById('mp-cardholder-name').value.trim();
+  const docType = document.getElementById('mp-doc-type').value;
+  const docNumber = document.getElementById('mp-doc-number').value.trim();
+  const payerEmail = document.getElementById('mp-payer-email').value.trim();
+
+  if (!cardholderName || !docNumber || !payerEmail) {
+    showMpCheckoutStatus('error', 'Completa tu nombre, documento y correo antes de pagar.');
+    return;
+  }
+  if (!mpInstance) {
+    showMpCheckoutStatus('error', 'El checkout no cargó correctamente. Usa "pagar por separado" o recarga la página.');
+    return;
+  }
+  if (!mpDetectedPaymentMethodId) {
+    showMpCheckoutStatus('error', 'Termina de escribir el número de tarjeta para poder identificarla.');
+    return;
+  }
+
+  const planInfo = planDetailsMap[currentCheckoutServiceKey];
+  if (!planInfo) {
+    showMpCheckoutStatus('error', 'No se pudo identificar el plan seleccionado. Cierra y vuelve a intentar.');
+    return;
+  }
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Procesando...';
+  showMpCheckoutStatus('info', 'Generando los tokens seguros de tu tarjeta...');
+
+  try {
+    const tokenData = { cardholderName, identificationType: docType, identificationNumber: docNumber };
+    // Un token por cada cobro (pago unico + suscripcion): un CardToken de
+    // Mercado Pago solo sirve una vez, por eso se generan 2 a partir de los
+    // MISMOS campos ya llenos -- el cliente no vuelve a escribir nada.
+    const [oneTimeTokenRes, subscriptionTokenRes] = await Promise.all([
+      mpInstance.fields.createCardToken(tokenData),
+      mpInstance.fields.createCardToken(tokenData)
+    ]);
+
+    showMpCheckoutStatus('info', 'Procesando tu pago...');
+
+    const webhookURL = localStorage.getItem('google-webhook-url') || localStorage.getItem('apps-script-url') || DEFAULT_WEBHOOK_URL;
+    const res = await fetch(webhookURL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({
+        action: 'mp_checkout',
+        serviceKey: currentCheckoutServiceKey,
+        planTitle: planInfo.title,
+        oneTimeAmount: planInfo.oneTimeAmount,
+        monthlyAmount: planInfo.monthlyAmount,
+        oneTimeToken: oneTimeTokenRes.id,
+        subscriptionToken: subscriptionTokenRes.id,
+        paymentMethodId: mpDetectedPaymentMethodId,
+        issuerId: mpDetectedIssuerId,
+        payerEmail,
+        docType,
+        docNumber,
+        cardholderName
+      })
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      showMpCheckoutStatus('success', `✅ ¡Listo! Tu pago fue aprobado y tu suscripción mensual quedó activa. Te enviaremos la confirmación a ${payerEmail}.`);
+      if (form) form.reset();
+    } else if (data.paymentApproved && !data.subscriptionActive) {
+      showMpCheckoutStatus('warning', '⚠️ Tu pago único se procesó correctamente, pero hubo un problema activando la mensualidad automática. Te contactaremos por WhatsApp para completarla — no te preocupes.');
+    } else {
+      showMpCheckoutStatus('error', `❌ ${data.error || 'No se pudo procesar el pago. Verifica los datos de tu tarjeta o prueba con otra.'}`);
+    }
+  } catch (err) {
+    console.error('Error en checkout de Mercado Pago:', err);
+    showMpCheckoutStatus('error', '❌ Ocurrió un error inesperado. Intenta de nuevo o usa "pagar por separado".');
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Pagar e Iniciar Suscripción';
+  }
+}
 
 // Datos de cuenta ACH de Global 66 (para transferencia en USD). No son
 // credenciales de acceso, son los datos publicos para RECIBIR el pago.
@@ -1554,6 +1731,7 @@ function initGlobal66Toggle() {
 
 document.addEventListener('DOMContentLoaded', () => {
   initGlobal66Toggle();
+  initMercadoPagoCheckout();
 
   const closePaymentModalBtn = document.getElementById('btn-close-payment-modal');
   if (closePaymentModalBtn) {
