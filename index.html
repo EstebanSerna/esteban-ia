@@ -20,8 +20,8 @@
   <meta name="apple-mobile-web-app-title" content="Esteban Serna">
   <link class="pwa-icon" rel="apple-touch-icon" href="images/icon-192.png">
   
-  <!-- CSS Stylesheet -->
-  <link rel="stylesheet" href="css/styles.css">
+  <!-- CSS Stylesheet (?v= se sube en cada cambio para evitar CSS viejo en caché) -->
+  <link rel="stylesheet" href="css/styles.css?v=3">
   
   <!-- Google API Client Script for GIS & Google Auth -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -37,7 +37,10 @@
     <header class="main-header">
       <div class="logo-area" id="brand-logo">
         <div class="logo-icon">ES</div>
-        <span class="logo-text text-gradient">ESTEBAN SERNA</span>
+        <div class="logo-text-group">
+          <span class="logo-text text-gradient">ESTEBAN SERNA</span>
+          <span class="logo-subtext">IA para Negocios</span>
+        </div>
       </div>
       
       <nav class="nav-links" id="nav-links">
@@ -1029,7 +1032,7 @@
   </div>
 
   <!-- Javascript Scripts -->
-  <script src="js/app.js"></script>
-  <script src="js/calendar.js"></script>
+  <script src="js/app.js?v=3"></script>
+  <script src="js/calendar.js?v=3"></script>
 </body>
 </html>
