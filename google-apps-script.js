@@ -76,6 +76,17 @@ function escapeHtml_(str) {
     .replace(/'/g, "&#39;");
 }
 
+// Arma el "reason" de la suscripcion sin pasarse del limite de 60
+// caracteres de Mercado Pago (recorta el titulo del plan si hace falta).
+function buildSubscriptionReason_(planTitle) {
+  const MAX_LENGTH = 60;
+  const SUFFIX = " - Mensual";
+  const base = (planTitle || "Esteban IA").trim();
+  const maxBaseLength = MAX_LENGTH - SUFFIX.length;
+  const trimmedBase = base.length > maxBaseLength ? base.slice(0, maxBaseLength).trim() : base;
+  return trimmedBase + SUFFIX;
+}
+
 function doPost(e) {
   try {
     if (!e || !e.postData || !e.postData.contents) {
@@ -380,7 +391,13 @@ function activateSubscriptionAndNotify_(data, paymentResult) {
   const subscriptionBody = {
     payer_email: data.payerEmail,
     card_token_id: data.subscriptionToken,
-    reason: (data.planTitle || "Esteban IA") + " - Sostenimiento Mensual",
+    // Mercado Pago exige "reason" <= 60 caracteres -- con planes largos
+    // (p.ej. "Asistente para Redes Sociales & WhatsApp") el sufijo anterior
+    // (" - Sostenimiento Mensual", 24 caracteres) se pasaba del limite y
+    // /preapproval rechazaba la suscripcion con "reason has more than 60
+    // characters". Este es, con alta probabilidad, EL motivo real de los
+    // fallos de suscripcion que veniamos investigando.
+    reason: buildSubscriptionReason_(data.planTitle),
     external_reference: "sub_" + (data.serviceKey || "plan").replace(/\s+/g, "_") + "_" + Date.now(),
     back_url: "https://esteban-serna.com/",
     notification_url: WEBHOOK_NOTIFICATION_URL,
