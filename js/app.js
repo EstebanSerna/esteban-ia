@@ -1681,6 +1681,8 @@ async function handleMercadoPagoCheckoutSubmit(e) {
       if (form) form.reset();
     } else if (data.paymentApproved && !data.subscriptionActive) {
       showMpCheckoutStatus('warning', '⚠️ Tu pago único se procesó correctamente, pero hubo un problema activando la mensualidad automática. Te contactaremos por WhatsApp para completarla — no te preocupes.');
+    } else if (data.paymentPending) {
+      showMpCheckoutStatus('warning', `⏳ ${data.error || 'Tu pago quedó en revisión, te confirmaremos pronto.'}`);
     } else {
       showMpCheckoutStatus('error', `❌ ${data.error || 'No se pudo procesar el pago. Verifica los datos de tu tarjeta o prueba con otra.'}`);
     }

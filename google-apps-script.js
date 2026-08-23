@@ -210,9 +210,6 @@ function handleMercadoPagoCheckout(data) {
       description: (data.planTitle || "Implementación Esteban IA") + " - Pago Único",
       installments: 1,
       payment_method_id: data.paymentMethodId,
-      // binary_mode fuerza una respuesta final (aprobado o rechazado) al
-      // instante, en vez de dejar el pago "in_process" en revision de fraude.
-      binary_mode: true,
       payer: {
         email: data.payerEmail,
         identification: {
@@ -222,9 +219,12 @@ function handleMercadoPagoCheckout(data) {
       }
     };
     if (data.issuerId) paymentBody.issuer_id = data.issuerId;
-    if (data.deviceId) {
-      paymentBody.additional_info = { device: { id: data.deviceId } };
-    }
+    // Nota: se intento mandar el device_id anti-fraude via
+    // additional_info.device.id pero Mercado Pago lo rechazo como campo
+    // invalido ("The name of the following parameters is wrong"). Se quita
+    // por ahora -- es un dato opcional para mejorar aprobacion, no
+    // obligatorio para que el pago funcione. Revisar el formato correcto
+    // mas adelante si hace falta.
 
     const paymentResponse = UrlFetchApp.fetch("https://api.mercadopago.com/v1/payments", {
       method: "post",
@@ -238,6 +238,18 @@ function handleMercadoPagoCheckout(data) {
     });
 
     const paymentResult = JSON.parse(paymentResponse.getContentText());
+
+    // Un pago puede quedar "in_process"/"pending" en revision de fraude (esto
+    // pasa con pagos reales tambien, no solo en sandbox). No se activa la
+    // suscripcion todavia -- se espera a que el pago se apruebe de verdad.
+    if (paymentResult.status === "in_process" || paymentResult.status === "pending") {
+      return createJsonResponse({
+        success: false,
+        paymentApproved: false,
+        paymentPending: true,
+        error: "Tu pago quedó en revisión. Te confirmaremos por correo en cuanto se apruebe (puede tardar unos minutos)."
+      });
+    }
 
     if (paymentResult.status !== "approved") {
       const reason = translatePaymentStatusDetail_(paymentResult.status_detail) || paymentResult.message || "Tu pago no fue aprobado";
