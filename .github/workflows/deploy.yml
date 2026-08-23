@@ -23,7 +23,7 @@ jobs:
       - name: Armar carpeta solo con los archivos que van al hosting
         run: |
           mkdir -p dist
-          cp index.html manifest.json sw.js .htaccess google-apps-script.js dist/
+          cp index.html manifest.json sw.js .htaccess google-apps-script.js robots.txt sitemap.xml dist/
           cp -r css js images dist/
 
       - name: Subir por SFTP a public_html
