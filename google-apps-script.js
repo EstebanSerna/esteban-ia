@@ -123,6 +123,15 @@ function handleChatDemo(data) {
       return createJsonResponse({ success: false, error: "ANTHROPIC_API_KEY no configurada en Propiedades del script" });
     }
 
+    // Historial de la conversacion (para que Claude sepa que ya saludo, etc.)
+    // Se valida y se limita por seguridad, aunque el front ya lo recorta.
+    const rawHistory = Array.isArray(data.history) ? data.history.slice(-16) : [];
+    const history = rawHistory
+      .filter(function (m) { return m && (m.role === "user" || m.role === "assistant") && m.content; })
+      .map(function (m) { return { role: m.role, content: String(m.content).slice(0, 1000) }; });
+
+    const messages = history.concat([{ role: "user", content: String(data.userText).slice(0, 1000) }]);
+
     const response = UrlFetchApp.fetch("https://api.anthropic.com/v1/messages", {
       method: "post",
       contentType: "application/json",
@@ -131,7 +140,7 @@ function handleChatDemo(data) {
         model: "claude-haiku-4-5-20251001",
         max_tokens: 400,
         system: String(data.systemPrompt).slice(0, 4000),
-        messages: [{ role: "user", content: String(data.userText).slice(0, 1000) }]
+        messages: messages
       }),
       muteHttpExceptions: true
     });

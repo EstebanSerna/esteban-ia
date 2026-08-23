@@ -956,6 +956,11 @@ const demoPresets = {
   }
 };
 
+// Memoria de la conversación actual del simulador: se manda a Claude en cada
+// turno para que sepa qué se ha dicho ya (así no vuelve a saludar ni se
+// repite). Se reinicia cada vez que se genera un demo nuevo.
+let simConversationHistory = [];
+
 let currentDemoConfig = {
   botName: 'Valentina',
   companyName: 'Óptica Visión Clara',
@@ -1196,6 +1201,9 @@ function generateCustomAIDemo() {
       </div>
     `;
   }
+
+  // Nueva empresa/rubro = conversación nueva
+  simConversationHistory = [];
 }
 
 function sendQuickPrompt(action) {
@@ -1224,7 +1232,9 @@ function sendQuickPrompt(action) {
 }
 
 async function fetchRealAIResponse(userText) {
-  const systemPrompt = `Eres ${currentDemoConfig.botName}, la asesora virtual de inteligencia artificial inteligente, amable y experta de "${currentDemoConfig.companyName}".
+  const esPrimerMensaje = simConversationHistory.length === 0;
+
+  const systemPrompt = `Eres ${currentDemoConfig.botName}, quien atiende por chat en "${currentDemoConfig.companyName}".
 Categoría del negocio: ${currentDemoConfig.categoryBadge}.
 Ubicación: ${currentDemoConfig.location}.
 Horarios de atención: ${currentDemoConfig.hours}.
@@ -1237,11 +1247,15 @@ Catálogo disponible con precios COP:
 4. ${currentDemoConfig.p4Name}: ${currentDemoConfig.p4Price}
 5. ${currentDemoConfig.p5Name}: ${currentDemoConfig.p5Price}
 
-Instrucciones de respuesta:
-- Responde de forma muy humana, cercana, entusiasta y experta en español a cualquier pregunta del cliente (ej. hipertrofia muscular y suplementación en gimnasio, examen de optometría y astigmatismo, valoraciones odontológicas y blanqueamiento, recetas o ingredientes en restaurantes, asesoría legal, mantenimiento automotriz, envíos de tienda, etc.).
-- Da explicaciones útiles y bien estructuradas (2 a 3 párrafos cortos o listas).
-- Al final de tu respuesta, invita cordialmente al cliente a tomar la acción principal correspondiente a ${currentDemoConfig.companyName} (agendar una cita/valoración gratis, pedir a domicilio o reservar una mesa).
-- Responde usando formato HTML simple (<strong>, <em>, <br>). No uses markdown con ***.`;
+Cómo hablar (muy importante):
+- Saluda ("Hola", "¡Qué tal!", etc.) ÚNICAMENTE en tu primer mensaje de la conversación. En cualquier mensaje posterior, entra directo al tema, como alguien que ya lleva un rato chateando contigo -- nunca vuelvas a presentarte ni a saludar de nuevo.
+- Habla como una persona real que trabaja ahí, no como un asistente de IA: nada de "Con respecto a tu pregunta sobre...", ni repetir la pregunta del cliente entre comillas, ni frases de manual. Responde directo, con naturalidad, como en un chat de WhatsApp real.
+- Varía tu forma de empezar cada respuesta -- no repitas siempre la misma estructura ni las mismas palabras de apertura.
+- Sé cercano, resolutivo y con buen criterio propio en español, incluso si la pregunta se sale del tema del negocio.
+- Da explicaciones útiles y bien estructuradas, pero breves (evita párrafos larguísimos).
+- Cuando tenga sentido, invita naturalmente a la acción principal de ${currentDemoConfig.companyName} (agendar una cita/valoración, pedir a domicilio o reservar), sin forzarlo en cada mensaje.
+- Responde usando formato HTML simple (<strong>, <em>, <br>). No uses markdown con ***.
+${esPrimerMensaje ? '\nEste es el primer mensaje del cliente en la conversación: puedes saludar de forma breve.' : '\nYa llevas conversación con este cliente (ver mensajes anteriores): NO saludes de nuevo, continúa natural.'}`;
 
   // 0. Claude real, vía el proxy de Google Apps Script (la API key vive en el
   //    servidor, nunca en el navegador). Es la fuente principal del demo.
@@ -1251,11 +1265,16 @@ Instrucciones de respuesta:
       const res = await fetch(webhookURL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({ action: 'chat', systemPrompt, userText })
+        body: JSON.stringify({ action: 'chat', systemPrompt, userText, history: simConversationHistory })
       });
       const data = await res.json();
       if (data.success && data.text) {
-        return data.text.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        const formatted = data.text.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        simConversationHistory.push({ role: 'user', content: userText });
+        simConversationHistory.push({ role: 'assistant', content: data.text });
+        // Se limitan los ultimos turnos para no mandar un historial gigante en cada mensaje
+        if (simConversationHistory.length > 16) simConversationHistory = simConversationHistory.slice(-16);
+        return formatted;
       }
       console.log('Proxy de Claude sin respuesta util, usando respaldo:', data.error);
     } catch (err) {
@@ -1265,11 +1284,17 @@ Instrucciones de respuesta:
 
   // 1. Respaldo silencioso: motor de IA gratuito (Pollinations.ai), solo si
   //    el proxy de Claude no esta configurado o fallo momentaneamente.
-  const fullPrompt = `${systemPrompt}\n\nPregunta del cliente: ${userText}`;
+  const historyAsText = simConversationHistory
+    .map(m => `${m.role === 'user' ? 'Cliente' : currentDemoConfig.botName}: ${m.content}`)
+    .join('\n');
+  const fullPrompt = `${systemPrompt}\n\n${historyAsText ? historyAsText + '\n' : ''}Pregunta del cliente: ${userText}`;
   const res = await fetch(`https://text.pollinations.ai/${encodeURIComponent(fullPrompt)}?model=openai&json=false`);
   if (res.ok) {
     const text = await res.text();
     if (text && text.trim().length > 15) {
+      simConversationHistory.push({ role: 'user', content: userText });
+      simConversationHistory.push({ role: 'assistant', content: text });
+      if (simConversationHistory.length > 16) simConversationHistory = simConversationHistory.slice(-16);
       return text.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
     }
   }
