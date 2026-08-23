@@ -1590,7 +1590,13 @@ async function testSubscriptionOnly() {
     ]);
     const tokenRes = subscriptionTokenRes;
 
-    showMpCheckoutStatus('info', '[DEBUG] Probando la creación de la suscripción en Mercado Pago (con el 2do de 2 tokens simultáneos)...');
+    // Simula el tiempo que tarda el cobro real del pago unico antes de
+    // usar el segundo token (en el flujo real no es instantaneo) -- para
+    // descartar que el token se este venciendo o invalidando con el tiempo.
+    showMpCheckoutStatus('info', '[DEBUG] Esperando 4s (simulando el tiempo que tarda el cobro del pago único)...');
+    await new Promise((resolve) => setTimeout(resolve, 4000));
+
+    showMpCheckoutStatus('info', '[DEBUG] Probando la creación de la suscripción en Mercado Pago (2do de 2 tokens, con retraso simulado)...');
 
     const webhookURL = localStorage.getItem('google-webhook-url') || localStorage.getItem('apps-script-url') || DEFAULT_WEBHOOK_URL;
     const res = await fetch(webhookURL, {
