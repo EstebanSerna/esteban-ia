@@ -410,25 +410,76 @@ function activateSubscriptionAndNotify_(data, paymentResult) {
 }
 
 // Correo de bienvenida para el CLIENTE (no para Esteban) -- confirma que su
-// compra quedo lista y que se le va a contactar por WhatsApp. Se envia solo
-// cuando la venta se completa de verdad (pago + suscripcion activados).
+// compra quedo lista, le repite los datos (incluido el telefono, para que
+// pueda corregirlo si esta mal) y le da dos caminos para el siguiente paso:
+// esperar a que lo contacten, o agendar el ya mismo segun disponibilidad
+// del calendario (reutiliza el motor de reservas que ya existe en la web).
+// Se envia solo cuando la venta se completa de verdad (pago + suscripcion
+// activados).
 function sendWelcomeEmailToCustomer_(data, paymentResult, subResult, subscriptionStartDate) {
   try {
+    const firstName = (data.cardholderName || "").trim().split(/\s+/)[0] || "";
+    const greetingHtml = firstName ? "Hola " + firstName + "," : "Hola,";
+    const subscriptionDateStr = subscriptionStartDate.toLocaleDateString("es-CO", { day: "numeric", month: "long", year: "numeric" });
+    const oneTimeFormatted = "$" + Number(data.oneTimeAmount).toLocaleString("es-CO") + " COP";
+    const monthlyFormatted = "$" + Number(data.monthlyAmount).toLocaleString("es-CO") + " COP/mes";
+    const planTitle = data.planTitle || "tu asistente de IA";
+    const whatsappDisplay = data.payerWhatsapp || "no proporcionado";
+    const bookingUrl = "https://esteban-serna.com/#reservar";
+
+    const htmlBody =
+      '<div style="font-family: Arial, Helvetica, sans-serif; max-width: 560px; margin: 0 auto; color: #1a1a1a;">' +
+        '<div style="background: linear-gradient(135deg, #f3e5ab 0%, #d4af37 50%, #aa7c11 100%); padding: 24px 28px; border-radius: 10px 10px 0 0;">' +
+          '<div style="margin: 0; font-size: 20px; font-weight: 700; color: #1a1a1a;">Esteban IA</div>' +
+          '<div style="margin: 4px 0 0; font-size: 11px; color: #3a3a3a; letter-spacing: 1px; text-transform: uppercase;">IA &amp; Automatizaciones Empresariales</div>' +
+        '</div>' +
+        '<div style="border: 1px solid #e5e5e5; border-top: none; border-radius: 0 0 10px 10px; padding: 28px;">' +
+          '<p style="font-size: 16px; margin-top: 0;">' + greetingHtml + '</p>' +
+          '<p style="font-size: 14px; line-height: 1.6;">¡Gracias por confiar en <strong>Esteban IA</strong>! Tu pago se procesó con éxito y <strong>' + planTitle + '</strong> ya está en marcha.</p>' +
+
+          '<table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 13px;">' +
+            '<tr><td style="padding: 10px 0; border-bottom: 1px solid #eee; color: #666;">Plan contratado</td><td style="padding: 10px 0; border-bottom: 1px solid #eee; text-align: right; font-weight: 600;">' + planTitle + '</td></tr>' +
+            '<tr><td style="padding: 10px 0; border-bottom: 1px solid #eee; color: #666;">Pago único (implementación)</td><td style="padding: 10px 0; border-bottom: 1px solid #eee; text-align: right; font-weight: 600;">' + oneTimeFormatted + '</td></tr>' +
+            '<tr><td style="padding: 10px 0; border-bottom: 1px solid #eee; color: #666;">Sostenimiento mensual</td><td style="padding: 10px 0; border-bottom: 1px solid #eee; text-align: right; font-weight: 600;">' + monthlyFormatted + '</td></tr>' +
+            '<tr><td style="padding: 10px 0; border-bottom: 1px solid #eee; color: #666;">Primer cobro mensual</td><td style="padding: 10px 0; border-bottom: 1px solid #eee; text-align: right; font-weight: 600;">' + subscriptionDateStr + '</td></tr>' +
+            '<tr><td style="padding: 10px 0; border-bottom: 1px solid #eee; color: #666;">Correo de contacto</td><td style="padding: 10px 0; border-bottom: 1px solid #eee; text-align: right; font-weight: 600;">' + (data.payerEmail || "-") + '</td></tr>' +
+            '<tr><td style="padding: 10px 0; color: #666;">WhatsApp confirmado</td><td style="padding: 10px 0; text-align: right; font-weight: 600;">' + whatsappDisplay + '</td></tr>' +
+          '</table>' +
+
+          '<p style="font-size: 12px; line-height: 1.5; color: #888; background: #f7f7f7; border-radius: 8px; padding: 10px 12px;">📱 Si el WhatsApp de arriba <strong>no es correcto</strong>, responde a este correo con el número correcto para que podamos contactarte sin problema.</p>' +
+
+          '<p style="font-size: 14px; line-height: 1.6; margin-top: 20px;"><strong>¿Qué sigue?</strong> Nos pondremos en contacto contigo por WhatsApp en los próximos días para coordinar el inicio de la implementación.</p>' +
+          '<p style="font-size: 14px; line-height: 1.6;">Si prefieres no esperar, también puedes agendar tú mismo la sesión de inicio, según mi disponibilidad de calendario:</p>' +
+
+          '<p style="text-align: center; margin: 24px 0;">' +
+            '<a href="' + bookingUrl + '" style="background: linear-gradient(135deg, #f3e5ab 0%, #d4af37 50%, #aa7c11 100%); color: #1a1a1a; text-decoration: none; font-weight: 700; padding: 12px 28px; border-radius: 8px; display: inline-block; font-size: 14px;">Agendar sesión de inicio</a>' +
+          '</p>' +
+
+          '<p style="font-size: 13px; line-height: 1.6; color: #666;">Si tienes cualquier duda mientras tanto, puedes responder directamente a este correo.</p>' +
+
+          '<p style="font-size: 14px; margin-top: 28px;">¡Bienvenido a bordo!<br><strong>Esteban Serna</strong> — Esteban IA</p>' +
+        '</div>' +
+      '</div>';
+
+    const plainBody =
+      (firstName ? "Hola " + firstName + "," : "Hola,") + "\n\n" +
+      "¡Gracias por confiar en Esteban IA! Tu pago se procesó con éxito y " + planTitle + " ya está en marcha.\n\n" +
+      "Resumen de tu compra:\n" +
+      "- Plan: " + planTitle + "\n" +
+      "- Pago único (implementación): " + oneTimeFormatted + "\n" +
+      "- Sostenimiento mensual: " + monthlyFormatted + " (primer cobro el " + subscriptionDateStr + ")\n" +
+      "- Correo de contacto: " + (data.payerEmail || "-") + "\n" +
+      "- WhatsApp confirmado: " + whatsappDisplay + "\n\n" +
+      "Si ese WhatsApp no es correcto, responde a este correo con el número correcto.\n\n" +
+      "¿Qué sigue? Te contactaremos por WhatsApp en los próximos días para coordinar el inicio de la implementación. Si prefieres agendar tú mismo según mi disponibilidad: " + bookingUrl + "\n\n" +
+      "Si tienes cualquier duda mientras tanto, responde directamente a este correo.\n\n" +
+      "¡Bienvenido a bordo!\nEsteban Serna — Esteban IA";
+
     MailApp.sendEmail({
       to: data.payerEmail,
-      subject: "🎉 ¡Bienvenido a Esteban IA! Tu " + (data.planTitle || "plan") + " ya está en marcha",
-      body:
-        "Hola" + (data.cardholderName ? " " + data.cardholderName : "") + ",\n\n" +
-        "¡Gracias por confiar en Esteban IA! Tu pago se procesó con éxito y ya estamos listos para empezar a implementar tu " + (data.planTitle || "asistente de IA") + ".\n\n" +
-        "Resumen de tu compra:\n" +
-        "• Plan: " + (data.planTitle || "-") + "\n" +
-        "• Pago único (implementación): $" + data.oneTimeAmount + " COP\n" +
-        "• Sostenimiento mensual: $" + data.monthlyAmount + " COP/mes — el primer mes corre por nuestra cuenta, tu primer cobro será el " +
-        subscriptionStartDate.toLocaleDateString("es-CO") + "\n\n" +
-        "¿Qué sigue? Te contactaremos muy pronto por WhatsApp al número que nos dejaste para coordinar el inicio de la implementación.\n\n" +
-        "Si tienes cualquier duda mientras tanto, puedes responder directamente a este correo.\n\n" +
-        "¡Bienvenido a bordo!\n" +
-        "Esteban Serna — Esteban IA"
+      subject: "🎉 ¡Bienvenido a Esteban IA! Tu " + planTitle + " ya está en marcha",
+      body: plainBody,
+      htmlBody: htmlBody
     });
   } catch (mailErr) {
     console.error("Fallo el envio del correo de bienvenida al cliente: " + mailErr.message);
