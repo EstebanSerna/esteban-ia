@@ -44,6 +44,38 @@ const SUBSCRIPTION_FREE_TRIAL_DAYS = 30; // El pago unico de hoy cubre la implem
 // Debe coincidir con DEFAULT_WEBHOOK_URL en js/app.js.
 const WEBHOOK_NOTIFICATION_URL = "https://script.google.com/macros/s/AKfycbyMWlRXHMRUvLN45NqEecusRBk7NOeuJWrUFLTCbTLv8Wqh_dO4VRIHcYwEph_sLHcY/exec";
 
+// Formatea una fecha como "22 de septiembre de 2026" a mano, en vez de
+// usar toLocaleDateString("es-CO") -- Apps Script corre sobre V8 y no hay
+// garantia de que el runtime tenga cargados los datos de idioma espanol
+// (ICU), asi que confiar en el locale podria mostrar la fecha en ingles o
+// en un formato distinto sin avisar. Esto es fijo y siempre correcto.
+function formatSpanishDate_(date) {
+  const months = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+  return date.getDate() + " de " + months[date.getMonth()] + " de " + date.getFullYear();
+}
+
+// Formatea un monto en pesos colombianos como "$1.950.000 COP" a mano, por
+// la misma razon que formatSpanishDate_ -- no depender de toLocaleString()
+// para el separador de miles (Colombia usa punto, no coma).
+function formatCOP_(amount) {
+  const rounded = Math.round(Number(amount) || 0);
+  return "$" + rounded.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".") + " COP";
+}
+
+// Escapa texto para insertarlo de forma segura dentro de un correo HTML.
+// Los campos del formulario de pago (nombre, correo, WhatsApp) los escribe
+// el propio visitante -- sin esto, alguien podria escribir HTML/JS en el
+// campo de nombre y que se inserte tal cual en el correo (a Esteban y al
+// mismo cliente) en vez de mostrarse como texto plano.
+function escapeHtml_(str) {
+  return String(str === null || str === undefined ? "" : str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function doPost(e) {
   try {
     if (!e || !e.postData || !e.postData.contents) {
@@ -389,8 +421,8 @@ function activateSubscriptionAndNotify_(data, paymentResult) {
       new Date(Date.now() + 30 * 60 * 1000),
       {
         description:
-          "Pago único: $" + data.oneTimeAmount + " COP\n" +
-          "Suscripción: $" + data.monthlyAmount + " COP/mes (empieza en " + SUBSCRIPTION_FREE_TRIAL_DAYS + " días)\n" +
+          "Pago único: " + formatCOP_(data.oneTimeAmount) + "\n" +
+          "Suscripción: " + formatCOP_(data.monthlyAmount) + "/mes (empieza en " + SUBSCRIPTION_FREE_TRIAL_DAYS + " días)\n" +
           "Correo: " + data.payerEmail + "\n" +
           "WhatsApp: " + (data.payerWhatsapp || "no proporcionado") + "\n" +
           "ID Pago: " + paymentResult.id + "\n" +
@@ -418,14 +450,24 @@ function activateSubscriptionAndNotify_(data, paymentResult) {
 // activados).
 function sendWelcomeEmailToCustomer_(data, paymentResult, subResult, subscriptionStartDate) {
   try {
-    const firstName = (data.cardholderName || "").trim().split(/\s+/)[0] || "";
-    const greetingHtml = firstName ? "Hola " + firstName + "," : "Hola,";
-    const subscriptionDateStr = subscriptionStartDate.toLocaleDateString("es-CO", { day: "numeric", month: "long", year: "numeric" });
-    const oneTimeFormatted = "$" + Number(data.oneTimeAmount).toLocaleString("es-CO") + " COP";
-    const monthlyFormatted = "$" + Number(data.monthlyAmount).toLocaleString("es-CO") + " COP/mes";
-    const planTitle = data.planTitle || "tu asistente de IA";
-    const whatsappDisplay = data.payerWhatsapp || "no proporcionado";
+    // Valores "crudos" (sin escapar), solo para el correo en texto plano.
+    const rawFirstName = (data.cardholderName || "").trim().split(/\s+/)[0] || "";
+    const rawPlanTitle = data.planTitle || "Plan Esteban IA"; // sin "tu" al inicio -- ver nota en el asunto mas abajo
+    const rawPayerEmail = data.payerEmail || "-";
+    const rawWhatsapp = data.payerWhatsapp || "no proporcionado";
+    const subscriptionDateStr = formatSpanishDate_(subscriptionStartDate);
+    const oneTimeFormatted = formatCOP_(data.oneTimeAmount);
+    const monthlyFormatted = formatCOP_(data.monthlyAmount) + "/mes";
     const bookingUrl = "https://esteban-serna.com/#reservar";
+
+    // Version escapada de los mismos valores, para insertar en el HTML sin
+    // riesgo -- el nombre, correo y WhatsApp los escribe el propio
+    // visitante en el formulario de pago, no son datos de confianza.
+    const firstName = escapeHtml_(rawFirstName);
+    const planTitle = escapeHtml_(rawPlanTitle);
+    const payerEmail = escapeHtml_(rawPayerEmail);
+    const whatsappDisplay = escapeHtml_(rawWhatsapp);
+    const greetingHtml = firstName ? "Hola " + firstName + "," : "Hola,";
 
     const htmlBody =
       '<div style="font-family: Arial, Helvetica, sans-serif; max-width: 560px; margin: 0 auto; color: #1a1a1a;">' +
@@ -435,21 +477,21 @@ function sendWelcomeEmailToCustomer_(data, paymentResult, subResult, subscriptio
         '</div>' +
         '<div style="border: 1px solid #e5e5e5; border-top: none; border-radius: 0 0 10px 10px; padding: 28px;">' +
           '<p style="font-size: 16px; margin-top: 0;">' + greetingHtml + '</p>' +
-          '<p style="font-size: 14px; line-height: 1.6;">¡Gracias por confiar en <strong>Esteban IA</strong>! Tu pago se procesó con éxito y <strong>' + planTitle + '</strong> ya está en marcha.</p>' +
+          '<p style="font-size: 14px; line-height: 1.6;">¡Gracias por confiar en <strong>Esteban IA</strong>! Tu pago se procesó con éxito y tu <strong>' + planTitle + '</strong> ya está en marcha.</p>' +
 
-          '<table style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 13px;">' +
+          '<table cellpadding="0" cellspacing="0" border="0" style="width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 13px;">' +
             '<tr><td style="padding: 10px 0; border-bottom: 1px solid #eee; color: #666;">Plan contratado</td><td style="padding: 10px 0; border-bottom: 1px solid #eee; text-align: right; font-weight: 600;">' + planTitle + '</td></tr>' +
             '<tr><td style="padding: 10px 0; border-bottom: 1px solid #eee; color: #666;">Pago único (implementación)</td><td style="padding: 10px 0; border-bottom: 1px solid #eee; text-align: right; font-weight: 600;">' + oneTimeFormatted + '</td></tr>' +
             '<tr><td style="padding: 10px 0; border-bottom: 1px solid #eee; color: #666;">Sostenimiento mensual</td><td style="padding: 10px 0; border-bottom: 1px solid #eee; text-align: right; font-weight: 600;">' + monthlyFormatted + '</td></tr>' +
             '<tr><td style="padding: 10px 0; border-bottom: 1px solid #eee; color: #666;">Primer cobro mensual</td><td style="padding: 10px 0; border-bottom: 1px solid #eee; text-align: right; font-weight: 600;">' + subscriptionDateStr + '</td></tr>' +
-            '<tr><td style="padding: 10px 0; border-bottom: 1px solid #eee; color: #666;">Correo de contacto</td><td style="padding: 10px 0; border-bottom: 1px solid #eee; text-align: right; font-weight: 600;">' + (data.payerEmail || "-") + '</td></tr>' +
+            '<tr><td style="padding: 10px 0; border-bottom: 1px solid #eee; color: #666;">Correo de contacto</td><td style="padding: 10px 0; border-bottom: 1px solid #eee; text-align: right; font-weight: 600;">' + payerEmail + '</td></tr>' +
             '<tr><td style="padding: 10px 0; color: #666;">WhatsApp confirmado</td><td style="padding: 10px 0; text-align: right; font-weight: 600;">' + whatsappDisplay + '</td></tr>' +
           '</table>' +
 
           '<p style="font-size: 12px; line-height: 1.5; color: #888; background: #f7f7f7; border-radius: 8px; padding: 10px 12px;">📱 Si el WhatsApp de arriba <strong>no es correcto</strong>, responde a este correo con el número correcto para que podamos contactarte sin problema.</p>' +
 
           '<p style="font-size: 14px; line-height: 1.6; margin-top: 20px;"><strong>¿Qué sigue?</strong> Nos pondremos en contacto contigo por WhatsApp en los próximos días para coordinar el inicio de la implementación.</p>' +
-          '<p style="font-size: 14px; line-height: 1.6;">Si prefieres no esperar, también puedes agendar tú mismo la sesión de inicio, según mi disponibilidad de calendario:</p>' +
+          '<p style="font-size: 14px; line-height: 1.6;">Si prefieres no esperar, también puedes agendar tú mismo la sesión de inicio según mi disponibilidad de calendario:</p>' +
 
           '<p style="text-align: center; margin: 24px 0;">' +
             '<a href="' + bookingUrl + '" style="background: linear-gradient(135deg, #f3e5ab 0%, #d4af37 50%, #aa7c11 100%); color: #1a1a1a; text-decoration: none; font-weight: 700; padding: 12px 28px; border-radius: 8px; display: inline-block; font-size: 14px;">Agendar sesión de inicio</a>' +
@@ -462,22 +504,22 @@ function sendWelcomeEmailToCustomer_(data, paymentResult, subResult, subscriptio
       '</div>';
 
     const plainBody =
-      (firstName ? "Hola " + firstName + "," : "Hola,") + "\n\n" +
-      "¡Gracias por confiar en Esteban IA! Tu pago se procesó con éxito y " + planTitle + " ya está en marcha.\n\n" +
+      (rawFirstName ? "Hola " + rawFirstName + "," : "Hola,") + "\n\n" +
+      "¡Gracias por confiar en Esteban IA! Tu pago se procesó con éxito y tu " + rawPlanTitle + " ya está en marcha.\n\n" +
       "Resumen de tu compra:\n" +
-      "- Plan: " + planTitle + "\n" +
+      "- Plan: " + rawPlanTitle + "\n" +
       "- Pago único (implementación): " + oneTimeFormatted + "\n" +
       "- Sostenimiento mensual: " + monthlyFormatted + " (primer cobro el " + subscriptionDateStr + ")\n" +
-      "- Correo de contacto: " + (data.payerEmail || "-") + "\n" +
-      "- WhatsApp confirmado: " + whatsappDisplay + "\n\n" +
+      "- Correo de contacto: " + rawPayerEmail + "\n" +
+      "- WhatsApp confirmado: " + rawWhatsapp + "\n\n" +
       "Si ese WhatsApp no es correcto, responde a este correo con el número correcto.\n\n" +
       "¿Qué sigue? Te contactaremos por WhatsApp en los próximos días para coordinar el inicio de la implementación. Si prefieres agendar tú mismo según mi disponibilidad: " + bookingUrl + "\n\n" +
       "Si tienes cualquier duda mientras tanto, responde directamente a este correo.\n\n" +
       "¡Bienvenido a bordo!\nEsteban Serna — Esteban IA";
 
     MailApp.sendEmail({
-      to: data.payerEmail,
-      subject: "🎉 ¡Bienvenido a Esteban IA! Tu " + planTitle + " ya está en marcha",
+      to: rawPayerEmail,
+      subject: "🎉 ¡Bienvenido a Esteban IA! Tu " + rawPlanTitle + " ya está en marcha",
       body: plainBody,
       htmlBody: htmlBody
     });
@@ -682,9 +724,9 @@ function notifySuccessfulSale_(data, paymentResult, subResult, subscriptionStart
         "WhatsApp: " + (data.payerWhatsapp || "no proporcionado") + "\n" +
         "Documento: " + (data.docType || "") + " " + (data.docNumber || "") + "\n\n" +
         "Plan: " + (data.planTitle || "-") + "\n" +
-        "Pago único cobrado: $" + data.oneTimeAmount + " COP (ID: " + paymentResult.id + ")\n" +
-        "Suscripción mensual: $" + data.monthlyAmount + " COP/mes, primer cobro el " +
-        subscriptionStartDate.toLocaleDateString("es-CO") + " (ID: " + subResult.id + ")\n\n" +
+        "Pago único cobrado: " + formatCOP_(data.oneTimeAmount) + " (ID: " + paymentResult.id + ")\n" +
+        "Suscripción mensual: " + formatCOP_(data.monthlyAmount) + "/mes, primer cobro el " +
+        formatSpanishDate_(subscriptionStartDate) + " (ID: " + subResult.id + ")\n\n" +
         "Contáctalo por WhatsApp para coordinar el inicio de la implementación."
     });
   } catch (mailErr) {
