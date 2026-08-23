@@ -1534,6 +1534,76 @@ function initMercadoPagoCheckout() {
 
   const form = document.getElementById('mp-checkout-form');
   if (form) form.addEventListener('submit', handleMercadoPagoCheckoutSubmit);
+
+  // Boton de diagnostico TEMPORAL (ver comentario en index.html): solo se
+  // muestra con ?debug=1 en la URL, para poder probar la creacion de la
+  // suscripcion sin cobrar el pago unico. Quitar una vez resuelto.
+  const testSubBtn = document.getElementById('btn-mp-test-subscription-only');
+  if (testSubBtn) {
+    if (new URLSearchParams(window.location.search).get('debug') === '1') {
+      testSubBtn.style.display = 'block';
+    }
+    testSubBtn.addEventListener('click', testSubscriptionOnly);
+  }
+}
+
+// TEMPORAL: prueba UNICAMENTE la creacion de la suscripcion en Mercado Pago
+// (no llama a /v1/payments, asi que no cobra el pago unico -- tokenizar la
+// tarjeta no tiene costo). Sirve para ver la respuesta cruda de Mercado
+// Pago cuando la suscripcion falla, sin arriesgar dinero real. El backend
+// ademas cancela de inmediato la suscripcion de prueba si llega a crearse.
+async function testSubscriptionOnly() {
+  const testBtn = document.getElementById('btn-mp-test-subscription-only');
+  const cardholderName = document.getElementById('mp-cardholder-name').value.trim();
+  const docType = document.getElementById('mp-doc-type').value;
+  const docNumber = document.getElementById('mp-doc-number').value.trim();
+  const payerEmail = document.getElementById('mp-payer-email').value.trim();
+
+  if (!cardholderName || !docNumber || !payerEmail) {
+    showMpCheckoutStatus('error', '[DEBUG] Completa nombre, documento y correo antes de probar.');
+    return;
+  }
+  if (!mpInstance) {
+    showMpCheckoutStatus('error', '[DEBUG] El checkout no cargó correctamente. Recarga la página.');
+    return;
+  }
+
+  testBtn.disabled = true;
+  testBtn.textContent = 'Probando (no se cobra nada)...';
+  showMpCheckoutStatus('info', '[DEBUG] Generando token de la tarjeta (gratis, no cobra)...');
+
+  try {
+    const tokenRes = await mpInstance.fields.createCardToken({ cardholderName, identificationType: docType, identificationNumber: docNumber });
+
+    showMpCheckoutStatus('info', '[DEBUG] Probando la creación de la suscripción en Mercado Pago...');
+
+    const webhookURL = localStorage.getItem('google-webhook-url') || localStorage.getItem('apps-script-url') || DEFAULT_WEBHOOK_URL;
+    const res = await fetch(webhookURL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({
+        action: 'mp_test_subscription',
+        subscriptionToken: tokenRes.id,
+        payerEmail,
+        docType,
+        docNumber,
+        cardholderName,
+        monthlyAmount: 1000
+      })
+    });
+    const data = await res.json();
+    console.log('[DEBUG] Resultado prueba de suscripción:', data);
+    showMpCheckoutStatus(
+      data.subscriptionActive ? 'success' : 'error',
+      '[DEBUG] ' + (data.subscriptionActive ? 'La suscripción SÍ se creó (se canceló de inmediato, no cobra nada).' : 'La suscripción NO se pudo crear.') +
+      '\n\nRespuesta cruda de Mercado Pago:\n' + JSON.stringify(data.raw || data, null, 2)
+    );
+  } catch (err) {
+    showMpCheckoutStatus('error', '[DEBUG] Error probando: ' + err.message);
+  } finally {
+    testBtn.disabled = false;
+    testBtn.textContent = '🧪 Solo probar suscripción (no cobra nada)';
+  }
 }
 
 function showMpCheckoutStatus(type, message) {

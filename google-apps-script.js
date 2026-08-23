@@ -69,6 +69,12 @@ function doPost(e) {
       return handleMercadoPagoCheckout(data);
     }
 
+    // TEMPORAL: ruta de diagnostico que SOLO prueba la creacion de la
+    // suscripcion (sin cobrar el pago unico), ver handleMpTestSubscription_.
+    if (data.action === "mp_test_subscription") {
+      return handleMpTestSubscription_(data);
+    }
+
     // Validar campos requeridos
     if (!data.name || !data.date || !data.time || !data.service) {
       return createJsonResponse({ success: false, error: "Faltan campos requeridos (nombre, fecha, hora o servicio)" });
@@ -399,6 +405,85 @@ function activateSubscriptionAndNotify_(data, paymentResult) {
   notifySuccessfulSale_(data, paymentResult, subResult, startDate);
 
   return { subscriptionActive: true, subResult: subResult };
+}
+
+// TEMPORAL -- herramienta de diagnostico: prueba UNICAMENTE la creacion de
+// la suscripcion (POST /preapproval), sin cobrar el pago unico -- tokenizar
+// la tarjeta no tiene costo, asi que esto no cobra nada. Sirve para ver la
+// respuesta cruda de Mercado Pago cuando la suscripcion normal falla. Si
+// por algun motivo la suscripcion de prueba SI se llega a crear, se cancela
+// de inmediato para no dejarla cobrando en el futuro. Quitar esta funcion
+// (y su ruta en doPost) una vez resuelto el problema de fondo.
+function handleMpTestSubscription_(data) {
+  try {
+    if (!data.subscriptionToken || !data.payerEmail) {
+      return createJsonResponse({ success: false, error: "Faltan datos para la prueba" });
+    }
+
+    if (!isWithinCheckoutRateLimit_()) {
+      return createJsonResponse({ success: false, error: "Demasiados intentos de pago en poco tiempo. Espera un momento e intenta de nuevo." });
+    }
+
+    const accessToken = PropertiesService.getScriptProperties().getProperty("MP_ACCESS_TOKEN");
+    if (!accessToken) {
+      return createJsonResponse({ success: false, error: "MP_ACCESS_TOKEN no configurado en Propiedades del script" });
+    }
+
+    const startDate = new Date(Date.now() + SUBSCRIPTION_FREE_TRIAL_DAYS * 24 * 60 * 60 * 1000);
+    const subscriptionBody = {
+      payer_email: data.payerEmail,
+      card_token_id: data.subscriptionToken,
+      reason: "PRUEBA DE DIAGNOSTICO (no real) - Esteban IA",
+      external_reference: "test_sub_" + Date.now(),
+      back_url: "https://esteban-serna.com/",
+      notification_url: WEBHOOK_NOTIFICATION_URL,
+      status: "authorized",
+      auto_recurring: {
+        frequency: 1,
+        frequency_type: "months",
+        start_date: startDate.toISOString(),
+        transaction_amount: Number(data.monthlyAmount) || 1000,
+        currency_id: "COP"
+      }
+    };
+
+    const subResponse = UrlFetchApp.fetch("https://api.mercadopago.com/preapproval", {
+      method: "post",
+      contentType: "application/json",
+      headers: { "Authorization": "Bearer " + accessToken },
+      payload: JSON.stringify(subscriptionBody),
+      muteHttpExceptions: true
+    });
+
+    const subResult = JSON.parse(subResponse.getContentText());
+    console.log("[DEBUG] Respuesta cruda de /preapproval (prueba de diagnostico): " + JSON.stringify(subResult));
+
+    const subscriptionActive = subResult.status === "authorized" || subResult.status === "pending";
+
+    // Si la suscripcion de prueba SI se creo, se cancela de inmediato --
+    // no queremos dejar una suscripcion real cobrando en 30 dias solo por
+    // haber hecho una prueba de diagnostico.
+    if (subscriptionActive && subResult.id) {
+      try {
+        UrlFetchApp.fetch("https://api.mercadopago.com/preapproval/" + subResult.id, {
+          method: "put",
+          contentType: "application/json",
+          headers: { "Authorization": "Bearer " + accessToken },
+          payload: JSON.stringify({ status: "cancelled" }),
+          muteHttpExceptions: true
+        });
+        console.log("[DEBUG] Suscripcion de prueba " + subResult.id + " cancelada automaticamente.");
+      } catch (cancelErr) {
+        console.error("[DEBUG] No se pudo cancelar la suscripcion de prueba " + subResult.id + ": " + cancelErr.message);
+      }
+    }
+
+    return createJsonResponse({ success: true, subscriptionActive: subscriptionActive, raw: subResult });
+
+  } catch (err) {
+    console.error("[DEBUG] Error en handleMpTestSubscription_: " + err.message);
+    return createJsonResponse({ success: false, error: err.message });
+  }
 }
 
 // Guarda temporalmente los datos de un checkout cuyo pago quedó "en

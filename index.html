@@ -851,7 +851,15 @@
             Pagar e Iniciar Suscripción
           </button>
 
-          <div id="mp-checkout-status" style="display: none; margin-top: 12px; font-size: 12px; padding: 10px 12px; border-radius: 8px; line-height: 1.5;"></div>
+          <!-- Boton de diagnostico TEMPORAL: solo visible con ?debug=1 en la URL.
+               Prueba UNICAMENTE la creacion de la suscripcion (sin cobrar el
+               pago unico) para ver la respuesta cruda de Mercado Pago. Quitar
+               una vez resuelto el problema de la suscripcion. -->
+          <button type="button" id="btn-mp-test-subscription-only" style="display: none; width: 100%; text-align: center; justify-content: center; padding: 10px; margin-top: 8px; background: #222; color: #fff; border: 1px dashed #888; border-radius: 8px; font-size: 12px; cursor: pointer;">
+            🧪 Solo probar suscripción (no cobra nada)
+          </button>
+
+          <div id="mp-checkout-status" style="display: none; margin-top: 12px; font-size: 12px; padding: 10px 12px; border-radius: 8px; line-height: 1.5; white-space: pre-wrap;"></div>
 
           <div style="font-size: 10px; color: var(--text-muted); margin-top: 10px; text-align: center;">🔒 Tu tarjeta la procesa Mercado Pago directamente, nunca pasa por nuestro servidor.</div>
         </form>
@@ -878,6 +886,6 @@
   </div>
 
   <!-- Javascript Scripts -->
-  <script src="js/app.js?v=19"></script>
+  <script src="js/app.js?v=20"></script>
 </body>
 </html>
