@@ -1452,9 +1452,12 @@ function initAISimulator() {
 const planDetailsMap = {
   'Asistente Basico WhatsApp': {
     title: 'Asistente para Redes Sociales & WhatsApp',
-    priceText: 'Inversión: <strong>$1.950.000 COP</strong> + $330.000 COP/mes',
-    oneTimeAmount: 1950000,
-    monthlyAmount: 330000
+    // TEMPORAL: monto bajado para la ULTIMA prueba real -- confirmar si el
+    // cobro real del pago unico invalida el 2do token de la suscripcion.
+    // Revertir a $1.950.000 / $330.000 apenas se tenga el resultado.
+    priceText: 'Inversión: <strong>$50.000 COP</strong> + $5.000 COP/mes',
+    oneTimeAmount: 50000,
+    monthlyAmount: 5000
   },
   'Asistente Experto Empresa': {
     title: 'Asistente Experto en tu Empresa',
