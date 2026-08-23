@@ -254,14 +254,7 @@ function handleMercadoPagoCheckout(data) {
 
     if (paymentResult.status !== "approved") {
       const reason = translatePaymentStatusDetail_(paymentResult.status_detail) || paymentResult.message || "Tu pago no fue aprobado";
-      // TEMPORAL para depurar el sandbox: incluye el detalle crudo de Mercado Pago.
-      // Quitar el campo "debug" antes de pasar a produccion.
-      return createJsonResponse({
-        success: false,
-        paymentApproved: false,
-        error: reason,
-        debug: { status: paymentResult.status, status_detail: paymentResult.status_detail, message: paymentResult.message, cause: paymentResult.cause }
-      });
+      return createJsonResponse({ success: false, paymentApproved: false, error: reason });
     }
 
     // 2) Pago aprobado -> activar la suscripción mensual con el SEGUNDO token.
