@@ -7,7 +7,7 @@ let tokenClient;
 let accessToken = null;
 let clientID = localStorage.getItem('google-client-id') || '';
 let apiKey = localStorage.getItem('google-api-key') || '';
-let webhookURL = localStorage.getItem('google-webhook-url') || '';
+let webhookURL = localStorage.getItem('google-webhook-url') || DEFAULT_WEBHOOK_URL;
 
 // Dynamic mock events for the Esteban IA Portal when in DEMO MODE
 function getDynamicMockEvents() {

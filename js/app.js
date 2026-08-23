@@ -3,6 +3,12 @@
  * Interactive Canvas Particle Engine, Strict Calendar Restrictions, Scarcity Logic & Checkout Gateway
  */
 
+// URL publica del webhook de Google Apps Script (reservas + proxy de chat con Claude).
+// No es un dato secreto -- esta pensada para que cualquier navegador la llame directo,
+// por eso vive aqui como valor por defecto. El panel de "Configurar Credenciales" puede
+// sobreescribirla en localStorage si algun dia se despliega una nueva version del script.
+const DEFAULT_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbyMWlRXHMRUvLN45NqEecusRBk7NOeuJWrUFLTCbTLv8Wqh_dO4VRIHcYwEph_sLHcY/exec';
+
 document.addEventListener('DOMContentLoaded', () => {
   initQuantumBackground();
   initPWA();
@@ -543,7 +549,7 @@ function initFormHandler() {
 
 function executeDirectBooking(showReceipt = true) {
   const receiptOverlay = document.getElementById('overlay-receipt');
-  const webhook = localStorage.getItem('google-webhook-url');
+  const webhook = localStorage.getItem('google-webhook-url') || DEFAULT_WEBHOOK_URL;
 
   // Save locally so it shows up in Panel Esteban IA immediately
   try {
@@ -1239,7 +1245,7 @@ Instrucciones de respuesta:
 
   // 0. Claude real, vía el proxy de Google Apps Script (la API key vive en el
   //    servidor, nunca en el navegador). Es la fuente principal del demo.
-  const webhookURL = localStorage.getItem('google-webhook-url') || localStorage.getItem('apps-script-url');
+  const webhookURL = localStorage.getItem('google-webhook-url') || localStorage.getItem('apps-script-url') || DEFAULT_WEBHOOK_URL;
   if (webhookURL) {
     try {
       const res = await fetch(webhookURL, {
