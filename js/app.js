@@ -1567,6 +1567,10 @@ async function testSubscriptionOnly() {
     showMpCheckoutStatus('error', '[DEBUG] El checkout no cargó correctamente. Recarga la página.');
     return;
   }
+  if (!mpDetectedPaymentMethodId) {
+    showMpCheckoutStatus('error', '[DEBUG] Falta llenar el número de tarjeta (también vencimiento y CVV) para poder generar el token.');
+    return;
+  }
 
   testBtn.disabled = true;
   testBtn.textContent = 'Probando (no se cobra nada)...';
@@ -1599,7 +1603,17 @@ async function testSubscriptionOnly() {
       '\n\nRespuesta cruda de Mercado Pago:\n' + JSON.stringify(data.raw || data, null, 2)
     );
   } catch (err) {
-    showMpCheckoutStatus('error', '[DEBUG] Error probando: ' + err.message);
+    // El SDK de Mercado Pago a veces rechaza con un array de errores de
+    // validacion (sin .message), no con un Error normal -- se muestra
+    // cualquier forma que venga para no perder el detalle.
+    let detail = 'Error desconocido';
+    if (err) {
+      if (err.message) detail = err.message;
+      else if (Array.isArray(err)) detail = err.map(function (e) { return e.message || e.code || JSON.stringify(e); }).join(' | ');
+      else { try { detail = JSON.stringify(err); } catch (jsonErr) { detail = String(err); } }
+    }
+    console.error('[DEBUG] Error crudo probando suscripción:', err);
+    showMpCheckoutStatus('error', '[DEBUG] Error probando: ' + detail);
   } finally {
     testBtn.disabled = false;
     testBtn.textContent = '🧪 Solo probar suscripción (no cobra nada)';
