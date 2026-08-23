@@ -1,37 +1,38 @@
-name: Deploy Esteban IA por FTP
+name: Deploy Esteban IA por SFTP
 
 # Se ejecuta automáticamente cada vez que hay un push a "main".
 # También se puede lanzar manualmente desde la pestaña "Actions" en GitHub.
+#
+# Nota: se usa SFTP (puerto 22) en vez de FTP normal porque StackCP corta la
+# conexión de datos FTP cuando viene desde IPs de datacenters como las de
+# GitHub Actions (funciona bien en FTP normal desde una red doméstica, pero
+# no desde la nube). SFTP usa un solo canal y no tiene ese problema.
 on:
   push:
     branches: [main]
   workflow_dispatch:
 
 jobs:
-  ftp-deploy:
+  sftp-deploy:
     name: Subir sitio al hosting
     runs-on: ubuntu-latest
     steps:
       - name: Descargar el código del repositorio
         uses: actions/checkout@v4
 
-      - name: Subir por FTP a public_html
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      - name: Armar carpeta solo con los archivos que van al hosting
+        run: |
+          mkdir -p dist
+          cp index.html manifest.json sw.js .htaccess google-apps-script.js dist/
+          cp -r css js images dist/
+
+      - name: Subir por SFTP a public_html
+        uses: wlixcc/SFTP-Deploy-Action@v1.2.6
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: /public_html/
-          # Solo se sube lo que el sitio realmente necesita en producción
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/.github/**
-            **/.archive/**
-            **/node_modules/**
-            **/*.zip
-            **/deploy-ftp.ps1
-            **/delete-ftp-folder.ps1
-            **/README.md
-            **/CLAUDE.md
-            **/package.json
+          port: 22
+          local_path: './dist/*'
+          remote_path: '/public_html/'
+          sftp_only: true
