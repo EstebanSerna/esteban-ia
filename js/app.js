@@ -7,6 +7,7 @@
 // No es un dato secreto -- esta pensada para que cualquier navegador la llame directo,
 // por eso vive aqui como valor por defecto. El panel de "Configurar Credenciales" puede
 // sobreescribirla en localStorage si algun dia se despliega una nueva version del script.
+const DEPLOY_CACHE_TEST = '1787493014'; // marca de tiempo para probar que ya no hace falta purgar
 const DEFAULT_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbyMWlRXHMRUvLN45NqEecusRBk7NOeuJWrUFLTCbTLv8Wqh_dO4VRIHcYwEph_sLHcY/exec';
 
 document.addEventListener('DOMContentLoaded', () => {
