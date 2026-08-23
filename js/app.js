@@ -3,16 +3,23 @@
  * Interactive Canvas Particle Engine, Strict Calendar Restrictions, Scarcity Logic & Checkout Gateway
  */
 
-// URL publica del webhook de Google Apps Script (reservas + proxy de chat con Claude).
-// No es un dato secreto -- esta pensada para que cualquier navegador la llame directo,
-// por eso vive aqui como valor por defecto. El panel de "Configurar Credenciales" puede
-// sobreescribirla en localStorage si algun dia se despliega una nueva version del script.
-// TEMPORAL: apuntado al backend nuevo de Railway para la prueba completa
-// del checkout en el sitio real. Si algo falla, revertir a la URL de
-// Apps Script de abajo (que sigue funcionando, ya tiene el mismo fix del
-// limite de 60 caracteres aplicado):
+// URL publica del backend (esteban-ia-backend en Railway: reservas/Calendar,
+// proxy de chat con Claude, checkout de Mercado Pago). No es un dato secreto
+// -- esta pensada para que cualquier navegador la llame directo. El
+// respaldo en Google Apps Script (mismo fix del limite de 60 caracteres del
+// campo "reason") sigue desplegado por si Railway llegara a fallar:
 // 'https://script.google.com/macros/s/AKfycbyMWlRXHMRUvLN45NqEecusRBk7NOeuJWrUFLTCbTLv8Wqh_dO4VRIHcYwEph_sLHcY/exec'
 const DEFAULT_WEBHOOK_URL = 'https://esteban-ia-backend-production.up.railway.app/';
+
+// Envia un evento a Google Analytics 4, sin romper nada si gtag no cargo
+// (bloqueador de anuncios, script fallido, etc.).
+function trackEvent(eventName, params) {
+  try {
+    if (typeof gtag === 'function') gtag('event', eventName, params || {});
+  } catch (err) {
+    // No debe interrumpir la experiencia del usuario si falla la analitica.
+  }
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   initQuantumBackground();
@@ -541,6 +548,13 @@ function executeDirectBooking(showReceipt = true) {
   }
 
   syncPromise.then(syncResult => {
+    trackEvent('booking_submitted', {
+      service_name: clientData.service,
+      value: clientData.amount || 0,
+      currency: 'COP',
+      synced_to_calendar: !!(syncResult && syncResult.success)
+    });
+
     const transactionId = 'RES-' + Math.floor(Math.random() * 9000000 + 1000000);
     const receiptGrid = document.getElementById('receipt-details');
     
@@ -679,9 +693,19 @@ function initROICalculator() {
     }
   }
 
-  collabSlider.addEventListener('input', calculateROI);
-  hoursSlider.addEventListener('input', calculateROI);
-  costSlider.addEventListener('input', calculateROI);
+  // Se avisa a Analytics solo la PRIMERA vez que el usuario mueve algun
+  // control (no en el calculo inicial al cargar la pagina, que no es uso
+  // real) -- evita mandar un evento por cada pixel que arrastra el slider.
+  let roiCalculatorTracked = false;
+  function trackROIUsageOnce() {
+    if (roiCalculatorTracked) return;
+    roiCalculatorTracked = true;
+    trackEvent('roi_calculator_used', {});
+  }
+
+  collabSlider.addEventListener('input', () => { trackROIUsageOnce(); calculateROI(); });
+  hoursSlider.addEventListener('input', () => { trackROIUsageOnce(); calculateROI(); });
+  costSlider.addEventListener('input', () => { trackROIUsageOnce(); calculateROI(); });
 
   calculateROI();
 }
@@ -1274,7 +1298,11 @@ async function addUserAndReply(userText) {
 
   // Remove initial hint on first message
   const hint = document.getElementById('chat-start-hint');
-  if (hint) hint.remove();
+  if (hint) {
+    hint.remove();
+    trackEvent('chat_demo_started', { preset: currentPresetKey });
+  }
+  trackEvent('chat_demo_message_sent', { preset: currentPresetKey });
 
   const userBubble = document.createElement('div');
   userBubble.className = 'chat-bubble user';
@@ -1495,6 +1523,8 @@ function openPaymentModal(serviceKey) {
   if (checkoutStatus) checkoutStatus.style.display = 'none';
 
   if (modal) modal.classList.add('active');
+
+  trackEvent('view_pricing_modal', { plan_name: currentCheckoutServiceKey });
 }
 
 window.openPaymentModal = openPaymentModal;
@@ -1708,6 +1738,12 @@ async function handleMercadoPagoCheckoutSubmit(e) {
 
     showMpCheckoutStatus('info', 'Procesando tu pago...');
 
+    trackEvent('begin_checkout', {
+      currency: 'COP',
+      value: planInfo.oneTimeAmount,
+      items: [{ item_name: planInfo.title, price: planInfo.oneTimeAmount }]
+    });
+
     const webhookURL = localStorage.getItem('google-webhook-url') || localStorage.getItem('apps-script-url') || DEFAULT_WEBHOOK_URL;
     const res = await fetch(webhookURL, {
       method: 'POST',
@@ -1735,6 +1771,12 @@ async function handleMercadoPagoCheckoutSubmit(e) {
     if (data.success) {
       showMpCheckoutStatus('success', `✅ ¡Listo! Tu pago fue aprobado. Tu mensualidad de sostenimiento queda programada para empezar a cobrarse en 30 días — el primer mes corre por nuestra cuenta mientras hacemos la implementación. Te contactaremos por WhatsApp en breve para arrancar, y te enviamos la confirmación a ${payerEmail}.`);
       if (form) form.reset();
+      trackEvent('purchase', {
+        transaction_id: String(data.paymentId || Date.now()),
+        currency: 'COP',
+        value: planInfo.oneTimeAmount,
+        items: [{ item_name: planInfo.title, price: planInfo.oneTimeAmount }]
+      });
     } else if (data.paymentApproved && !data.subscriptionActive) {
       // TEMPORAL: mientras se sigue diagnosticando, el detalle crudo de
       // Mercado Pago solo se muestra con ?debug=1 -- un cliente real nunca
@@ -1742,10 +1784,13 @@ async function handleMercadoPagoCheckoutSubmit(e) {
       const isDebugMode = new URLSearchParams(window.location.search).get('debug') === '1';
       const debugSuffix = (isDebugMode && data.debugSubResult) ? '\n\n[DEBUG] ' + JSON.stringify(data.debugSubResult, null, 2) : '';
       showMpCheckoutStatus('warning', '⚠️ Tu pago único se procesó correctamente, pero hubo un problema activando la mensualidad automática. Te contactaremos por WhatsApp para completarla — no te preocupes.' + debugSuffix);
+      trackEvent('checkout_subscription_failed', { plan_name: currentCheckoutServiceKey });
     } else if (data.paymentPending) {
       showMpCheckoutStatus('warning', `⏳ ${data.error || 'Tu pago quedó en revisión, te confirmaremos pronto.'}`);
+      trackEvent('checkout_payment_pending', { plan_name: currentCheckoutServiceKey });
     } else {
       showMpCheckoutStatus('error', `❌ ${data.error || 'No se pudo procesar el pago. Verifica los datos de tu tarjeta o prueba con otra.'}`);
+      trackEvent('checkout_payment_rejected', { plan_name: currentCheckoutServiceKey, reason: data.error || 'desconocido' });
     }
   } catch (err) {
     console.error('Error en checkout de Mercado Pago:', err);
@@ -1757,6 +1802,7 @@ async function handleMercadoPagoCheckoutSubmit(e) {
     // sin revisar antes.
     const detail = (err && err.message) ? err.message : 'Error de conexión desconocido.';
     showMpCheckoutStatus('error', `❌ No pudimos confirmar el resultado de tu pago (${detail}). Antes de intentar de nuevo, revisa tu correo o contáctanos por WhatsApp para verificar si ya se procesó.`);
+    trackEvent('checkout_client_error', { plan_name: currentCheckoutServiceKey, detail });
   } finally {
     submitBtn.disabled = false;
     submitBtn.textContent = 'Pagar e Iniciar Suscripción';
