@@ -1,7 +1,7 @@
 # CLAUDE.md - Esteban Serna | IA & Automatizaciones Empresariales
 
 ## Project Overview
-**Esteban IA** (`esteban-ia`) is a high-converting web platform and Progressive Web App (PWA) designed for **Esteban Serna** — AI & Enterprise Automation Specialist. The platform serves as an interactive sales funnel, service showcase, ROI savings calculator, interactive AI simulator, diagnostic booking engine, and private admin portal with Google Calendar integration.
+**Esteban IA** (`esteban-ia`) is a high-converting web platform and Progressive Web App (PWA) designed for **Esteban Serna** — AI & Enterprise Automation Specialist. The platform serves as an interactive sales funnel, service showcase, ROI savings calculator, interactive AI simulator, and diagnostic booking engine, backed by a Google Apps Script webhook for Calendar events + a Claude chat proxy.
 
 ---
 
@@ -17,7 +17,8 @@ To launch the project locally:
 - **Frontend**: Pure HTML5, Vanilla CSS3 (Custom Properties & Glassmorphism), ES6+ JavaScript.
 - **Visual Effects**: Canvas 2D Quantum Particle System (`#quantum-canvas`).
 - **PWA**: Web App Manifest (`manifest.json`) + Service Worker (`sw.js`).
-- **Backend / Integrations**: Google Apps Script (`google-apps-script.js`) for Google Calendar auto-booking, Google Identity Services (GIS API), LocalStorage fallback.
+- **Backend / Integrations**: Google Apps Script (`google-apps-script.js`) — a single webhook that
+  handles both Google Calendar auto-booking and the Claude chat proxy for the AI simulator.
 
 ---
 
@@ -25,13 +26,12 @@ To launch the project locally:
 
 ```
 esteban-ia/
-├── index.html              # Main HTML structure (Landing Page & Panel Esteban IA)
+├── index.html              # Main HTML structure (single public landing page / sales funnel)
 ├── css/
 │   └── styles.css          # Design system, CSS variables, glassmorphism, responsive grid
 ├── js/
-│   ├── app.js              # Quantum canvas, navigation, ROI calculator, AI simulator, booking form logic
-│   └── calendar.js         # Google Calendar GIS authentication, Apps Script webhook integration, event rendering
-├── google-apps-script.js   # Google Apps Script (GAS) Web App backend for Calendar event creation & CORS handling
+│   └── app.js              # Quantum canvas, navigation, ROI calculator, AI simulator, booking form logic
+├── google-apps-script.js   # Google Apps Script (GAS) Web App backend for Calendar events + Claude chat proxy
 ├── manifest.json           # Progressive Web App (PWA) manifest
 ├── sw.js                   # Service Worker for offline caching & PWA support
 ├── images/                 # Hero background, photos, and PWA app icons (192x192, 512x512)
@@ -72,9 +72,8 @@ esteban-ia/
   2. Time Slot Selection (Morning / Afternoon hours).
   3. Service Package Selection (Diagnóstico Gratuito, Agente Básico, Agente Experto, Ecosistema Completo).
   4. Client Info Form (Name, Email, WhatsApp, Social handle, Objective).
-- **Submission Flow**:
-  - Saves locally in `localStorage` under `local-reservations`.
-  - Dispatches JSON payload to Google Apps Script Web App (if configured).
+- **Submission Flow**: Dispatches the JSON payload straight to the Google Apps Script Web App
+  (`executeDirectBooking()` in `app.js`), which creates the Calendar event server-side.
 
 ### 5. Google Calendar & Webhook Integration (`google-apps-script.js` & `calendar.js`)
 - **Backend Handler (`google-apps-script.js`)**:
@@ -91,12 +90,12 @@ esteban-ia/
   - `isWithinChatRateLimit_()` caps total chat calls to `CHAT_RATE_LIMIT_PER_MINUTE` (20) per minute
     across all visitors via `CacheService`, since the endpoint is publicly reachable with no auth.
 - **Client Webhook Config**:
-  - Saved in `localStorage` key `apps-script-url` or `google-webhook-url`. Used for both bookings and chat.
-
-### 6. Panel Privado Esteban IA & Demo Mode (`calendar.js`)
-- Accessible via button `#btn-ia-portal`.
-- Toggles between Public Landing Page (`#public-view`) and Admin Dashboard (`#ia-portal-view`).
-- Includes dynamic mock events for demo mode when Google OAuth keys are not present.
+  - `DEFAULT_WEBHOOK_URL` in `app.js` is the public `/exec` URL — it's not a secret (any browser is
+    meant to call it directly), so it ships as a hardcoded default. `localStorage` keys
+    `google-webhook-url` / `apps-script-url` can still override it if a new Apps Script version is
+    ever deployed under a different URL.
+- **Payment links**: `planDetailsMap` in `app.js` holds the Mercado Pago default link per plan, and
+  `G66_LINK_DEFAULT` the Global 66 one — update these directly in code when real checkout links exist.
 
 ---
 
@@ -122,5 +121,9 @@ esteban-ia/
 
 1. **Vanilla Architecture**: Keep code native HTML5/CSS3/Vanilla JS. Do not introduce large build tools (Webpack, Vite, React) unless explicitly requested.
 2. **CORS Safety**: When modifying `google-apps-script.js`, ensure `doOptions(e)` and `Access-Control-Allow-Origin` headers remain untouched for Web App deployment.
-3. **State Management**: Use `localStorage` cleanly with key prefixes (`local-reservations`, `apps-script-url`, `google-client-id`).
+3. **State Management**: There is no admin/login area anymore — the site is a single public page.
+   `localStorage` is only used to optionally override `DEFAULT_WEBHOOK_URL` (`google-webhook-url` /
+   `apps-script-url` keys). Don't reintroduce a credentials/config modal for things that can just be
+   hardcoded defaults (webhook URL, payment links) — see the git history around "quitemos el Acceso"
+   for why that was removed.
 4. **Spanish Language**: UI text, date formatting, and system messages are in Spanish (`es`).

@@ -28,10 +28,7 @@
   <link class="pwa-icon" rel="apple-touch-icon" href="images/icon-192.png">
   
   <!-- CSS Stylesheet (?v= se sube en cada cambio para evitar CSS viejo en caché) -->
-  <link rel="stylesheet" href="css/styles.css?v=5">
-  
-  <!-- Google API Client Script for GIS & Google Auth -->
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <link rel="stylesheet" href="css/styles.css?v=6">
 </head>
 <body>
 
@@ -58,7 +55,6 @@
         <a href="#comparativa" class="nav-item">Antes vs Después</a>
         <a href="#planes" class="nav-item">Servicios</a>
         <a href="#reservar" class="nav-item">Agendar</a>
-        <button class="nav-btn" id="btn-ia-portal">Acceso</button>
       </nav>
 
       <button class="menu-btn" id="mobile-menu-trigger" aria-label="Abrir menú" aria-expanded="false">
@@ -744,98 +740,6 @@
 
       </div>
       
-      <!-- PANEL PRIVADO ESTEBAN IA -->
-      <div id="ia-portal-view" class="ia-portal-section">
-        <div class="portal-wrapper">
-          
-          <div class="portal-header">
-            <div class="portal-user-info">
-              <img class="pwa-icon" src="images/icon-192.png" alt="Avatar Esteban" class="portal-avatar" id="ia-portal-avatar" style="width:48px; height:48px; border-radius:50%; border:2px solid var(--gold-primary);">
-              <div>
-                <h2 class="portal-title">Panel Esteban IA</h2>
-                <p class="portal-subtitle" id="ia-portal-identity">Esteban Serna · Programación y Control</p>
-              </div>
-            </div>
-            
-            <button class="nav-btn" id="btn-logout-google" style="display:none;">Cerrar Sesión</button>
-            <button class="nav-btn" id="btn-back-public">Volver a la Web</button>
-          </div>
-          
-          <!-- Auth Gate: Sign In Card -->
-          <div id="google-auth-gate">
-            <div class="google-auth-card">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--gold-primary)" stroke-width="1.5">
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                <line x1="16" y1="2" x2="16" y2="6"></line>
-                <line x1="8" y1="2" x2="8" y2="6"></line>
-                <line x1="3" y1="10" x2="21" y2="10"></line>
-              </svg>
-              <h3 style="margin-top: 20px;">Sincronización Google Calendar</h3>
-              <p style="color: var(--text-secondary); margin-top: 10px; font-size: 14px;">
-                Inicia sesión con tu cuenta de Google para sincronizar directamente tu calendario y ver toda tu programación actual en esta app en tiempo real.
-              </p>
-              
-              <!-- Config credentials toggle -->
-              <a href="#" id="toggle-config" style="display:block; margin-top:20px; font-size:12px; color: var(--gold-primary);">Configurar Credenciales de Google</a>
-              
-              <button class="google-btn" id="btn-login-google">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google Logo">
-                Sincronizar Calendario
-              </button>
-            </div>
-          </div>
-          
-          <!-- Authenticated Esteban IA Dashboard -->
-          <div id="google-calendar-dashboard" style="display: none;">
-            <div class="ia-portal-dashboard">
-              
-              <!-- Left Sidebar Statistics -->
-              <div class="ia-portal-sidebar-card">
-                <h3>Resumen Semanal</h3>
-                
-                <div style="margin-top: 20px;">
-                  <span style="font-size: 11px; text-transform: uppercase; color: var(--text-secondary);">Sesiones Agendadas</span>
-                  <div class="ia-portal-stat-num" id="stat-sessions-count">0</div>
-                </div>
-                
-                <div style="margin-top: 20px;">
-                  <span style="font-size: 11px; text-transform: uppercase; color: var(--text-secondary);">Próxima Sesión</span>
-                  <p id="stat-next-session" style="font-size: 13px; font-weight: 600; margin-top: 5px; color: var(--gold-primary);">-</p>
-                </div>
-                
-                <div style="margin-top: 30px;">
-                  <button class="btn btn-secondary" id="btn-refresh-calendar" style="width: 100%; padding: 10px 15px; font-size: 12px;">
-                    Sincronizar Ahora
-                  </button>
-                </div>
-              </div>
-              
-              <!-- Calendar Agenda List -->
-              <div class="ia-portal-calendar-card">
-                <div class="calendar-controls">
-                  <h3>Próximos Compromisos</h3>
-                  <div style="display:flex; gap: 8px;">
-                    <span class="btn-pill active" id="filter-all">Todo</span>
-                    <span class="btn-pill inactive" id="filter-sessions">Sesiones</span>
-                  </div>
-                </div>
-                
-                <div class="agenda-list" id="ia-portal-agenda-list">
-                  <!-- Dynamic items -->
-                  <div class="agenda-item">
-                    <div style="text-align: center; width: 100%;">
-                      Cargando tu programación...
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-            </div>
-          </div>
-          
-        </div>
-      </div>
-      
     </main>
 
     <!-- FOOTER -->
@@ -849,7 +753,6 @@
         <a href="#servicios">¿Qué hace la IA?</a>
         <a href="#planes">Servicios</a>
         <a href="#reservar">Reservar</a>
-        <a href="#" id="link-ia-portal-login">Acceso Interno</a>
       </div>
       <div class="footer-copyright">
         &copy; 2026 Esteban Serna. Todos los derechos reservados.<br>
@@ -890,59 +793,6 @@
       </div>
     </div>
 
-    <!-- GOOGLE CALENDAR CONFIGURATION DIALOG -->
-    <div class="overlay" id="overlay-config">
-      <div class="modal-card config-modal">
-        <h3>Credenciales de Integración</h3>
-        <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 13px;">
-          Para vincular tu Google Calendar real en JavaScript, debes configurar tus claves API de Google Cloud Console.
-        </p>
-        
-        <div class="form-group" style="text-align: left;">
-          <label class="form-label" for="config-client-id">Google Client ID</label>
-          <input type="text" class="form-input" id="config-client-id" placeholder="12345678-abc.apps.googleusercontent.com">
-        </div>
-        
-        <div class="form-group" style="text-align: left;">
-          <label class="form-label" for="config-api-key">Google API Key</label>
-          <input type="password" class="form-input" id="config-api-key" placeholder="AIzaSy...">
-        </div>
-
-        <div class="form-group" style="text-align: left;">
-          <label class="form-label" for="config-webhook-url">Google Apps Script Webhook URL</label>
-          <input type="url" class="form-input" id="config-webhook-url" placeholder="https://script.google.com/macros/s/.../exec">
-        </div>
-        
-        <div class="form-group" style="text-align: left; margin-top: 15px;">
-          <label class="form-label" for="config-mp-link-tier2">Mercado Pago Link (Asistente Básico $1.950.000)</label>
-          <input type="url" class="form-input" id="config-mp-link-tier2" placeholder="https://www.mercadopago.com.co/checkout/v1/redirect?pref_id=...">
-        </div>
-
-        <div class="form-group" style="text-align: left;">
-          <label class="form-label" for="config-mp-link-tier3">Mercado Pago Link (Asistente Experto $3.450.000)</label>
-          <input type="url" class="form-input" id="config-mp-link-tier3" placeholder="https://www.mercadopago.com.co/checkout/v1/redirect?pref_id=...">
-        </div>
-
-        <div class="form-group" style="text-align: left;">
-          <label class="form-label" for="config-mp-link-tier4">Mercado Pago Link (Plataforma $5.900.000)</label>
-          <input type="url" class="form-input" id="config-mp-link-tier4" placeholder="https://www.mercadopago.com.co/checkout/v1/redirect?pref_id=...">
-        </div>
-
-        <div class="form-group" style="text-align: left;">
-          <label class="form-label" for="config-global66-link">Global 66 Link / ID de Transferencia</label>
-          <input type="url" class="form-input" id="config-global66-link" placeholder="https://global66.com/...">
-        </div>
-        
-        <div style="font-size: 11px; text-align: left; color: var(--text-muted); margin-bottom: 20px; line-height: 1.4;">
-          * Las claves y enlaces de pago se guardan localmente para el portal.
-        </div>
-        
-        <div style="display: flex; gap: 15px;">
-          <button class="btn btn-secondary" id="btn-config-cancel" style="flex:1; padding: 10px;">Cancelar</button>
-          <button class="btn btn-primary" id="btn-config-save" style="flex:1; padding: 10px;">Guardar</button>
-        </div>
-      </div>
-    </div>
 
     <!-- OVERLAYS: ELEGANT PAYMENT & BOOKING OPTIONS MODAL -->
     <div class="overlay" id="overlay-payment-options">
@@ -1021,7 +871,6 @@
   </div>
 
   <!-- Javascript Scripts -->
-  <script src="js/app.js?v=6"></script>
-  <script src="js/calendar.js?v=6"></script>
+  <script src="js/app.js?v=7"></script>
 </body>
 </html>

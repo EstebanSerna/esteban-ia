@@ -12,7 +12,6 @@ const DEFAULT_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbyMWlRXHMRU
 document.addEventListener('DOMContentLoaded', () => {
   initQuantumBackground();
   initPWA();
-  initRouting();
   initMobileMenu();
   initiOSBanner();
   initCalendar();
@@ -202,38 +201,6 @@ function initPWA() {
         .catch(err => console.error('Fallo al registrar SW PWA:', err));
     });
   }
-}
-
-// 3. SPA ROUTING
-function initRouting() {
-  const publicView = document.getElementById('public-view');
-  const iaPortalView = document.getElementById('ia-portal-view');
-  const btnIaPortal = document.getElementById('btn-ia-portal');
-  const linkIaPortalLogin = document.getElementById('link-ia-portal-login');
-  const btnBackPublic = document.getElementById('btn-back-public');
-  const brandLogo = document.getElementById('brand-logo');
-
-  const showIaPortal = (e) => {
-    if (e) e.preventDefault();
-    publicView.style.display = 'none';
-    iaPortalView.style.display = 'block';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    
-    if (typeof window.checkGoogleAuth === 'function') {
-      window.checkGoogleAuth();
-    }
-  };
-
-  const showPublicView = (e) => {
-    if (e) e.preventDefault();
-    iaPortalView.style.display = 'none';
-    publicView.style.display = 'block';
-  };
-
-  btnIaPortal.addEventListener('click', showIaPortal);
-  linkIaPortalLogin.addEventListener('click', showIaPortal);
-  btnBackPublic.addEventListener('click', showPublicView);
-  brandLogo.addEventListener('click', showPublicView);
 }
 
 // 4. iOS PWA INSTALL BANNER
@@ -551,22 +518,6 @@ function executeDirectBooking(showReceipt = true) {
   const receiptOverlay = document.getElementById('overlay-receipt');
   const webhook = localStorage.getItem('google-webhook-url') || DEFAULT_WEBHOOK_URL;
 
-  // Save locally so it shows up in Panel Esteban IA immediately
-  try {
-    const localRes = JSON.parse(localStorage.getItem('local-reservations') || '[]');
-    const newBookingEvent = {
-      summary: `${clientData.service}: ${clientData.name}`,
-      start: { dateTime: new Date().toISOString() },
-      end: { dateTime: new Date(Date.now() + 1800000).toISOString() },
-      description: `WhatsApp: ${clientData.whatsapp} | Correo: ${clientData.email} | Redes: ${clientData.social}`,
-      status: 'confirmed'
-    };
-    localRes.unshift(newBookingEvent);
-    localStorage.setItem('local-reservations', JSON.stringify(localRes));
-  } catch (err) {
-    console.error("Error guardando reserva local:", err);
-  }
-  
   let syncPromise = Promise.resolve({ success: false, reason: 'no-webhook' });
   
   if (webhook) {
@@ -1494,24 +1445,24 @@ function initAISimulator() {
 }
 
 // 10. ELEGANT PAYMENT & BOOKING MODAL HANDLER
+// Links de pago por defecto -- actualiza mpDefault/G66_LINK_DEFAULT aqui
+// cuando tengas los links reales de Mercado Pago / Global 66 de cada plan.
+const G66_LINK_DEFAULT = 'https://global66.com/';
 const planDetailsMap = {
   'Asistente Basico WhatsApp': {
     title: 'Asistente para Redes Sociales & WhatsApp',
     priceText: 'Inversión: <strong>$1.950.000 COP</strong> + $330.000 COP/mes',
-    mpDefault: 'https://www.mercadopago.com.co/subscriptions#from-section=menu',
-    mpStorageKey: 'config-mp-link-tier2'
+    mpDefault: 'https://www.mercadopago.com.co/subscriptions#from-section=menu'
   },
   'Asistente Experto Empresa': {
     title: 'Asistente Experto en tu Empresa',
     priceText: 'Inversión: <strong>$3.450.000 COP</strong> + $520.000 COP/mes',
-    mpDefault: 'https://www.mercadopago.com.co/subscriptions#from-section=menu',
-    mpStorageKey: 'config-mp-link-tier3'
+    mpDefault: 'https://www.mercadopago.com.co/subscriptions#from-section=menu'
   },
   'Sistema Completo Automatico': {
     title: 'Plataforma Empresarial & Página Web IA',
     priceText: 'Inversión: <strong>$5.900.000 COP</strong> + $890.000 COP/mes',
-    mpDefault: 'https://www.mercadopago.com.co/subscriptions#from-section=menu',
-    mpStorageKey: 'config-mp-link-tier4'
+    mpDefault: 'https://www.mercadopago.com.co/subscriptions#from-section=menu'
   }
 };
 
@@ -1528,11 +1479,8 @@ function openPaymentModal(serviceKey) {
   if (titleEl) titleEl.textContent = planInfo.title;
   if (priceEl) priceEl.innerHTML = planInfo.priceText;
 
-  const savedMpUrl = localStorage.getItem(planInfo.mpStorageKey) || planInfo.mpDefault;
-  const savedG66Url = localStorage.getItem('config-global66-link') || 'https://global66.com/';
-
-  if (mpLink) mpLink.href = savedMpUrl;
-  if (g66Link) g66Link.href = savedG66Url;
+  if (mpLink) mpLink.href = planInfo.mpDefault;
+  if (g66Link) g66Link.href = G66_LINK_DEFAULT;
 
   if (bookBtn) {
     bookBtn.onclick = () => {

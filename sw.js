@@ -1,11 +1,10 @@
-const CACHE_NAME = 'esteban-serna-ai-v2';
+const CACHE_NAME = 'esteban-serna-ai-v3';
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
   './css/styles.css',
-  './js/app.js',
-  './js/calendar.js'
+  './js/app.js'
 ];
 
 // Install Event

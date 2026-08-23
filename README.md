@@ -9,10 +9,9 @@ Plataforma web interactiva, embudo de ventas de alta conversión y Progressive W
 - 🚀 **Embudo de Ventas Interactivo**: Sección Hero, explicación de capacidades de IA, tabla comparativa Antes vs Después y paquetes de servicios.
 - 🧮 **Calculadora de Ahorro ROI**: Módulo interactivo que calcula el tiempo ahorrado en horas al mes y el retorno de inversión anual en USD ($) y COP ($).
 - 💬 **Simulador de Agente IA**: Demostración interactiva en tiempo real potenciada por Claude (Anthropic) real, vía un proxy seguro en Google Apps Script (la API key nunca viaja al navegador). Con respaldo automático a un motor gratuito si el proxy no está configurado.
-- 📅 **Motor de Reservas Integrado**: Agendamiento en 4 pasos (Fecha, Hora, Servicio, Datos del Cliente) con persistencia local y sincronización remota.
+- 📅 **Motor de Reservas Integrado**: Agendamiento en 4 pasos (Fecha, Hora, Servicio, Datos del Cliente), sincronizado directo a Google Calendar.
 - ⚙️ **Integración con Google Calendar (Google Apps Script)**: Backend sin servidor (`google-apps-script.js`) que crea eventos automáticamente en Google Calendar y envía invitaciones por correo electrónico.
 - 📱 **Progressive Web App (PWA)**: Compatible con instalación en dispositivos móviles y de escritorio (`manifest.json` y `sw.js`).
-- 📊 **Panel Privado Esteban IA / Administrador**: Vista de gestión interna para visualizar estadísticas, reservas recibidas y configurar credenciales de Google API.
 
 ---
 
@@ -20,8 +19,7 @@ Plataforma web interactiva, embudo de ventas de alta conversión y Progressive W
 
 - **Frontend**: HTML5 Semántico, Vanilla CSS3 (Variables CSS, Glassmorphism, Responsive Grid), JavaScript ES6+.
 - **Efectos Visuales**: Canvas 2D HTML5 para sistema de partículas cuánticas.
-- **Backend / Webhook**: Google Apps Script (GAS) desplegado como Aplicación Web.
-- **Autenticación (Opcional)**: Google Identity Services (GIS API) y OAuth 2.0.
+- **Backend / Webhook**: Google Apps Script (GAS) desplegado como Aplicación Web (reservas + proxy de chat con Claude).
 - **PWA**: Service Worker API y Web App Manifest.
 
 ---
@@ -63,7 +61,8 @@ Plataforma web interactiva, embudo de ventas de alta conversión y Progressive W
    - **Ejecutar como**: *Tú (tu cuenta de correo)*.
    - **Quién tiene acceso**: *Cualquiera (Anyone)*.
 7. Copia la URL de la aplicación web generada (termina en `/exec`).
-8. Pega esta URL en el portal de configuración de la web o en `localStorage` bajo la clave `apps-script-url`.
+8. Pégala como `DEFAULT_WEBHOOK_URL` en `js/app.js` (no es un dato secreto, está pensada para que
+   cualquier navegador la llame directo). El sitio ya no tiene un panel de login para configurar esto.
 
 ### 🤖 Activar el Simulador de IA con Claude Real
 
