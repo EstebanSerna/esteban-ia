@@ -25,6 +25,7 @@ jobs:
           mkdir -p dist
           cp index.html manifest.json sw.js .htaccess google-apps-script.js robots.txt sitemap.xml dist/
           cp -r css js images dist/
+          [ -d blog ] && cp -r blog dist/ || echo "Sin carpeta blog/ todavia, se omite"
 
       - name: Subir por SFTP a public_html
         uses: wlixcc/SFTP-Deploy-Action@v1.2.6
