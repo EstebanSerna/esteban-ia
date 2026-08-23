@@ -27,6 +27,16 @@ jobs:
           cp -r css js images dist/
           [ -d blog ] && cp -r blog dist/ || echo "Sin carpeta blog/ todavia, se omite"
 
+      - name: Crear carpetas nuevas en el servidor (SFTP-Deploy-Action no las crea en modo sftp_only)
+        run: |
+          which sshpass > /dev/null 2>&1 || sudo apt-get install -y sshpass
+          sshpass -p "${{ secrets.FTP_PASSWORD }}" sftp -oStrictHostKeyChecking=no -oBatchMode=no -P 22 "${{ secrets.FTP_USERNAME }}@${{ secrets.FTP_SERVER }}" << 'EOF'
+          -mkdir /public_html/blog
+          -mkdir /public_html/blog/drafts
+          -mkdir /public_html/blog/posts
+          bye
+          EOF
+
       - name: Subir por SFTP a public_html
         uses: wlixcc/SFTP-Deploy-Action@v1.2.6
         with:
