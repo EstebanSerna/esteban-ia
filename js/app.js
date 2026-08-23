@@ -1751,7 +1751,14 @@ async function handleMercadoPagoCheckoutSubmit(e) {
     }
   } catch (err) {
     console.error('Error en checkout de Mercado Pago:', err);
-    showMpCheckoutStatus('error', '❌ Ocurrió un error inesperado. Intenta de nuevo en un momento.');
+    // Se muestra el detalle real (antes quedaba oculto con un mensaje
+    // generico, lo que hacia imposible diagnosticar sin abrir la consola).
+    // Aviso importante: en este punto el pago pudo haberse alcanzado a
+    // procesar del lado del servidor antes de que fallara la respuesta --
+    // no lo decimos como error de tarjeta para no invitar a pagar de nuevo
+    // sin revisar antes.
+    const detail = (err && err.message) ? err.message : 'Error de conexión desconocido.';
+    showMpCheckoutStatus('error', `❌ No pudimos confirmar el resultado de tu pago (${detail}). Antes de intentar de nuevo, revisa tu correo o contáctanos por WhatsApp para verificar si ya se procesó.`);
   } finally {
     submitBtn.disabled = false;
     submitBtn.textContent = 'Pagar e Iniciar Suscripción';
