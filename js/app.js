@@ -7,7 +7,12 @@
 // No es un dato secreto -- esta pensada para que cualquier navegador la llame directo,
 // por eso vive aqui como valor por defecto. El panel de "Configurar Credenciales" puede
 // sobreescribirla en localStorage si algun dia se despliega una nueva version del script.
-const DEFAULT_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbyMWlRXHMRUvLN45NqEecusRBk7NOeuJWrUFLTCbTLv8Wqh_dO4VRIHcYwEph_sLHcY/exec';
+// TEMPORAL: apuntado al backend nuevo de Railway para la prueba completa
+// del checkout en el sitio real. Si algo falla, revertir a la URL de
+// Apps Script de abajo (que sigue funcionando, ya tiene el mismo fix del
+// limite de 60 caracteres aplicado):
+// 'https://script.google.com/macros/s/AKfycbyMWlRXHMRUvLN45NqEecusRBk7NOeuJWrUFLTCbTLv8Wqh_dO4VRIHcYwEph_sLHcY/exec'
+const DEFAULT_WEBHOOK_URL = 'https://esteban-ia-backend-production.up.railway.app/';
 
 document.addEventListener('DOMContentLoaded', () => {
   initQuantumBackground();
@@ -1452,9 +1457,11 @@ function initAISimulator() {
 const planDetailsMap = {
   'Asistente Basico WhatsApp': {
     title: 'Asistente para Redes Sociales & WhatsApp',
-    priceText: 'Inversión: <strong>$1.950.000 COP</strong> + $330.000 COP/mes',
-    oneTimeAmount: 1950000,
-    monthlyAmount: 330000
+    // TEMPORAL: monto de prueba para validar el checkout completo contra
+    // Railway en el sitio real. Revertir a $1.950.000 / $330.000 despues.
+    priceText: 'Inversión: <strong>$50.000 COP</strong> + $5.000 COP/mes',
+    oneTimeAmount: 50000,
+    monthlyAmount: 5000
   },
   'Asistente Experto Empresa': {
     title: 'Asistente Experto en tu Empresa',
