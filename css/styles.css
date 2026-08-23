@@ -1440,6 +1440,7 @@ h1, h2, h3, h4, h5 {
 
 .footer-links {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
   gap: 25px;
   margin-bottom: 30px;
@@ -1447,11 +1448,16 @@ h1, h2, h3, h4, h5 {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1px;
-  color: var(--text-secondary);
+}
+
+.footer-links a {
+  color: var(--gold-primary);
+  text-decoration: none;
+  transition: var(--transition-cubic);
 }
 
 .footer-links a:hover {
-  color: var(--gold-primary);
+  color: var(--text-primary);
 }
 
 .footer-copyright {
