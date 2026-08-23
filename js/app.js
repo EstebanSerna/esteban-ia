@@ -1452,12 +1452,9 @@ function initAISimulator() {
 const planDetailsMap = {
   'Asistente Basico WhatsApp': {
     title: 'Asistente para Redes Sociales & WhatsApp',
-    // TEMPORAL: monto bajado para la ULTIMA prueba real -- confirmar si el
-    // cobro real del pago unico invalida el 2do token de la suscripcion.
-    // Revertir a $1.950.000 / $330.000 apenas se tenga el resultado.
-    priceText: 'Inversión: <strong>$50.000 COP</strong> + $5.000 COP/mes',
-    oneTimeAmount: 50000,
-    monthlyAmount: 5000
+    priceText: 'Inversión: <strong>$1.950.000 COP</strong> + $330.000 COP/mes',
+    oneTimeAmount: 1950000,
+    monthlyAmount: 330000
   },
   'Asistente Experto Empresa': {
     title: 'Asistente Experto en tu Empresa',
@@ -1734,10 +1731,11 @@ async function handleMercadoPagoCheckoutSubmit(e) {
       showMpCheckoutStatus('success', `✅ ¡Listo! Tu pago fue aprobado. Tu mensualidad de sostenimiento queda programada para empezar a cobrarse en 30 días — el primer mes corre por nuestra cuenta mientras hacemos la implementación. Te contactaremos por WhatsApp en breve para arrancar, y te enviamos la confirmación a ${payerEmail}.`);
       if (form) form.reset();
     } else if (data.paymentApproved && !data.subscriptionActive) {
-      // TEMPORAL: se muestra el detalle crudo de Mercado Pago en pantalla
-      // para diagnosticar el fallo de la suscripcion sin depender del panel
-      // de Ejecuciones de Apps Script. Quitar una vez resuelto.
-      const debugSuffix = data.debugSubResult ? '\n\n[DEBUG] ' + JSON.stringify(data.debugSubResult, null, 2) : '';
+      // TEMPORAL: mientras se sigue diagnosticando, el detalle crudo de
+      // Mercado Pago solo se muestra con ?debug=1 -- un cliente real nunca
+      // deberia ver un volcado de JSON en el mensaje de error.
+      const isDebugMode = new URLSearchParams(window.location.search).get('debug') === '1';
+      const debugSuffix = (isDebugMode && data.debugSubResult) ? '\n\n[DEBUG] ' + JSON.stringify(data.debugSubResult, null, 2) : '';
       showMpCheckoutStatus('warning', '⚠️ Tu pago único se procesó correctamente, pero hubo un problema activando la mensualidad automática. Te contactaremos por WhatsApp para completarla — no te preocupes.' + debugSuffix);
     } else if (data.paymentPending) {
       showMpCheckoutStatus('warning', `⏳ ${data.error || 'Tu pago quedó en revisión, te confirmaremos pronto.'}`);
