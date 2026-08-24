@@ -2419,6 +2419,52 @@ h1, h2, h3, h4, h5 {
   color: #0a0a0a;
 }
 
+.closer-savings-card {
+  align-self: stretch;
+  background: rgba(46, 204, 113, 0.05);
+  border: 1px solid rgba(46, 204, 113, 0.3);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: fadeIn 0.4s ease;
+}
+
+.closer-savings-card-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.closer-savings-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.closer-savings-row strong {
+  color: var(--text-primary);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.closer-savings-highlight {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--success-color);
+  border-top: 1px solid rgba(46, 204, 113, 0.2);
+  padding-top: 8px;
+  margin-top: 2px;
+}
+
+.closer-savings-highlight strong {
+  font-size: 14.5px;
+}
+
 .closer-plan-card {
   align-self: stretch;
   background: rgba(212, 175, 55, 0.06);

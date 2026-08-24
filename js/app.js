@@ -1864,17 +1864,22 @@ let closerHasOpened = false;
 function buildCloserSystemPrompt(esPrimerMensaje) {
   return `Eres el asistente de ventas de Esteban IA, una agencia colombiana de agentes de inteligencia artificial y automatización de procesos empresariales, dirigida por Esteban Serna. Estás en el chat flotante de esteban-serna.com, hablando con un visitante que podría convertirse en cliente.
 
-TU TRABAJO: identificar, con un par de preguntas de contexto (rubro del negocio, dónde atiende hoy a sus clientes -- WhatsApp, redes o web --, y su problema principal), cuál de los 3 planes de pago le conviene más, explicar brevemente por qué, y guiarlo directo a pagar e implementar. El pago activa la implementación real -- Esteban ya NO agenda llamadas de diagnóstico gratis antes de vender, así que NO ofrezcas la reunión de Zoom gratuita como primer paso ni como opción por defecto. Solo menciónala como alternativa si la persona, después de ver el plan recomendado y el precio, sigue genuinamente indecisa y prefiere hablar antes de pagar -- ahí sí como último recurso, no antes.
+TU TRABAJO: identificar, con un par de preguntas de contexto (rubro del negocio, dónde atiende hoy a sus clientes -- WhatsApp, redes o web --, y su problema principal), cuál de los 3 planes de pago le conviene más. Antes de recomendar el plan, muéstrale primero cuánto se estaría ahorrando frente a lo que gasta hoy en personal (ver el paso de la marca [[SAVINGS:...]] más abajo) -- el beneficio económico es lo que justifica la decisión, nunca lleves a alguien directo al botón de pago sin haberle mostrado antes ese ahorro. Solo después de eso, recomienda el plan concreto y guíalo a pagar. El pago activa la implementación real -- Esteban ya NO agenda llamadas de diagnóstico gratis antes de vender, así que NO ofrezcas la reunión de Zoom gratuita como primer paso ni como opción por defecto. Solo menciónala como alternativa si la persona, después de ver el ahorro, el plan recomendado y el precio, sigue genuinamente indecisa y prefiere hablar antes de pagar -- ahí sí como último recurso, no antes.
 
 CATÁLOGO REAL (nunca inventes precios ni planes distintos a estos; usa EXACTAMENTE estas claves internas cuando recomiendes uno):
 1. Clave interna "Asistente Basico WhatsApp" -- Asistente para Redes Sociales y WhatsApp -- $1.950.000 COP de implementación (pago único) + $330.000 COP/mes de sostenimiento. Ideal para quien solo necesita atención automática por WhatsApp.
 2. Clave interna "Asistente Experto Empresa" -- Asistente Experto en tu Empresa -- $3.450.000 COP + $520.000 COP/mes. Cubre WhatsApp, redes sociales y el sitio web con el mismo agente, agenda citas y califica prospectos. El más pedido.
 3. Clave interna "Sistema Completo Automatico" -- Plataforma Empresarial y Página Web IA -- $5.900.000 COP + $890.000 COP/mes. El plan más completo: automatización de procesos, agendamiento, calificación de clientes y desarrollo del aplicativo web con IA integrada.
 
-CÓMO RECOMENDAR UN PLAN:
-- No recomiendes un plan en tu primer mensaje sin haber preguntado antes por el negocio y su necesidad real -- una recomendación sin contexto suena a plantilla, no a criterio real.
-- En cuanto tengas contexto suficiente, dilo claro ("para tu caso, el plan que más te conviene es...") y agrega al FINAL de tu respuesta, en su propia línea, exactamente esto (es una señal interna para el sitio, nunca la menciones ni la expliques al visitante): [[PLAN:clave_interna_exacta]]
-- Usa esa marca UNA sola vez, cuando ya estés recomendando un plan concreto -- no la repitas en cada mensaje siguiente.
+CÓMO GUIAR LA CONVERSACIÓN (en este orden, nunca te saltes pasos ni los mezcles en un solo mensaje):
+1. Primero pregunta lo necesario para entender el negocio: rubro, por dónde atiende hoy (WhatsApp, redes o web), y su problema principal. No recomiendes nada todavía.
+2. Cuando ya tengas eso, pregunta (si no te lo han dicho) cuántas personas responden hoy mensajes o atienden clientes, y cuántas horas al día lo hacen. Si la persona no lo sabe con precisión, usa un valor típico razonable (1 persona, 8 horas/día, $10.000 COP/hora de costo laboral aproximado) sin insistir en pedir precisión.
+3. Con esos datos, en SU PROPIO mensaje (nunca junto con la recomendación del plan), muéstrale el beneficio económico real antes que nada: agrega al final de ese mensaje, en su propia línea, esta marca interna (es una señal para el sitio, nunca la menciones ni la expliques al visitante, ni muestres tú mismo los números -- el sitio calcula y muestra la cifra real):
+   [[SAVINGS:people=N;hours=N;rate=N;plan=clave_interna_del_plan_que_ya_tienes_en_mente]]
+   - "plan" debe ser la clave exacta (ver catálogo abajo) del plan que le vas a recomendar, aunque todavía no lo anuncies por su nombre en el texto visible de este mensaje.
+   - Termina este mensaje invitando a seguir (ej. "¿quieres que te muestre exactamente qué plan te conviene con ese ahorro?"), SIN recomendar el plan todavía ni mencionar su precio de implementación.
+4. SOLO en un mensaje POSTERIOR (después de que el ahorro ya se mostró en la conversación), recomienda el plan concreto con su razón ("para tu caso, el plan que más te conviene es...") y agrega al final, en su propia línea: [[PLAN:clave_interna_exacta]]
+5. Nunca muestres [[SAVINGS:...]] y [[PLAN:...]] en el mismo mensaje. Nunca muestres [[PLAN:...]] si el ahorro no se mostró antes en la conversación (revisa el historial).
 
 DATOS QUE PUEDES USAR:
 - El primer mes de la mensualidad de sostenimiento no se cobra (corre por cuenta de Esteban IA mientras se hace la implementación); después se cobra normal cada mes.
@@ -1914,6 +1919,49 @@ function initSalesCloser() {
     if (isHtml) bubble.innerHTML = text;
     else bubble.textContent = text;
     messagesEl.appendChild(bubble);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function formatCOPCloser(amount) {
+    return '$' + Math.round(amount).toLocaleString('es-CO') + ' COP';
+  }
+
+  // Misma formula exacta que la calculadora visible de #calculadora (ver
+  // calculateROI() mas arriba en este archivo) -- se duplica aqui a
+  // proposito para no acoplar el chat a los sliders del DOM del
+  // calculador, pero los numeros deben coincidir siempre.
+  function computeCloserSavings({ people, hours, rate, planKey }) {
+    const p = Math.max(1, parseInt(people, 10) || 1);
+    const h = Math.max(1, Math.min(24, parseInt(hours, 10) || 8));
+    const r = Math.max(1, parseInt(rate, 10) || 10000);
+
+    const hours247Month = Math.round(24 * 30 * p);
+    const totalCost247Human = Math.round(hours247Month * r);
+
+    const plan = planDetailsMap[planKey];
+    const costIA = plan ? plan.monthlyAmount : 520000;
+    const netSavings247 = Math.max(0, totalCost247Human - costIA);
+
+    return { totalCost247Human, costIA, netSavings247, planTitle: plan ? plan.title : 'Asistente de IA', p, h };
+  }
+
+  function renderSavingsCard(paramsStr) {
+    const parts = {};
+    paramsStr.split(';').forEach((pair) => {
+      const [k, v] = pair.split('=');
+      if (k && v) parts[k.trim()] = v.trim();
+    });
+    const s = computeCloserSavings({ people: parts.people, hours: parts.hours, rate: parts.rate, planKey: parts.plan });
+
+    const card = document.createElement('div');
+    card.className = 'closer-savings-card';
+    card.innerHTML = `
+      <div class="closer-savings-card-title">💰 Lo que te estarías ahorrando</div>
+      <div class="closer-savings-row"><span>Cubrir 24/7 con personal humano</span><strong>${formatCOPCloser(s.totalCost247Human)}/mes</strong></div>
+      <div class="closer-savings-row"><span>${s.planTitle}</span><strong>${formatCOPCloser(s.costIA)}/mes</strong></div>
+      <div class="closer-savings-highlight">Ahorro neto: <strong>${formatCOPCloser(s.netSavings247)}/mes</strong></div>
+    `;
+    messagesEl.appendChild(card);
     messagesEl.scrollTop = messagesEl.scrollHeight;
   }
 
@@ -1985,10 +2033,17 @@ function initSalesCloser() {
       messagesEl.querySelectorAll('.temp-typing').forEach((el) => el.remove());
 
       if (data.success && data.text) {
+        const savingsMatch = data.text.match(/\[\[SAVINGS:([^\]]+)\]\]/);
         const planMatch = data.text.match(/\[\[PLAN:([^\]]+)\]\]/);
-        const cleanText = data.text.replace(/\s*\[\[PLAN:[^\]]+\]\]\s*$/, '').trim();
+        const cleanText = data.text
+          .replace(/\s*\[\[SAVINGS:[^\]]+\]\]\s*/, ' ')
+          .replace(/\s*\[\[PLAN:[^\]]+\]\]\s*$/, '')
+          .trim();
         const formatted = cleanText.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
         renderCloserMessage('ai', formatted, true);
+        // Orden fijo: primero el ahorro, despues el plan -- aunque el
+        // modelo las haya emitido en otro orden en el texto crudo.
+        if (savingsMatch) renderSavingsCard(savingsMatch[1].trim());
         if (planMatch) renderPlanRecommendation(planMatch[1].trim());
 
         closerConversationHistory.push({ role: 'user', content: userText });
