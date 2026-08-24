@@ -1878,7 +1878,7 @@ CÓMO GUIAR LA CONVERSACIÓN (en este orden, nunca te saltes pasos ni los mezcle
    [[SAVINGS:people=N;hours=N;rate=N;plan=clave_interna_del_plan_que_ya_tienes_en_mente]]
    - "plan" debe ser la clave exacta (ver catálogo abajo) del plan que le vas a recomendar, aunque todavía no lo anuncies por su nombre en el texto visible de este mensaje.
    - Termina este mensaje invitando a seguir (ej. "¿quieres que te muestre exactamente qué plan te conviene con ese ahorro?"), SIN recomendar el plan todavía ni mencionar su precio de implementación.
-4. SOLO en un mensaje POSTERIOR (después de que el ahorro ya se mostró en la conversación), recomienda el plan concreto con su razón ("para tu caso, el plan que más te conviene es...") y agrega al final, en su propia línea: [[PLAN:clave_interna_exacta]]
+4. SOLO en un mensaje POSTERIOR (después de que el ahorro ya se mostró en la conversación), recomienda el plan concreto con su razón ("para tu caso, el plan que más te conviene es..."). El marcador [[PLAN:clave_interna_exacta]] debe ser literalmente lo ÚLTIMO que escribas en ese mensaje -- no agregues nada después (ni siquiera la opción de hablar antes de pagar; si quieres ofrecerla, hazlo en un mensaje aparte solo si la persona duda después de ver el plan).
 5. Nunca muestres [[SAVINGS:...]] y [[PLAN:...]] en el mismo mensaje. Nunca muestres [[PLAN:...]] si el ahorro no se mostró antes en la conversación (revisa el historial).
 
 DATOS QUE PUEDES USAR:
@@ -2036,8 +2036,9 @@ function initSalesCloser() {
         const savingsMatch = data.text.match(/\[\[SAVINGS:([^\]]+)\]\]/);
         const planMatch = data.text.match(/\[\[PLAN:([^\]]+)\]\]/);
         const cleanText = data.text
-          .replace(/\s*\[\[SAVINGS:[^\]]+\]\]\s*/, ' ')
-          .replace(/\s*\[\[PLAN:[^\]]+\]\]\s*$/, '')
+          .replace(/\s*\[\[SAVINGS:[^\]]+\]\]\s*/g, ' ')
+          .replace(/\s*\[\[PLAN:[^\]]+\]\]\s*/g, ' ')
+          .replace(/[ \t]{2,}/g, ' ')
           .trim();
         const formatted = cleanText.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
         renderCloserMessage('ai', formatted, true);
