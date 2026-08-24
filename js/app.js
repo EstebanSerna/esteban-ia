@@ -1864,13 +1864,17 @@ let closerHasOpened = false;
 function buildCloserSystemPrompt(esPrimerMensaje) {
   return `Eres el asistente de ventas de Esteban IA, una agencia colombiana de agentes de inteligencia artificial y automatización de procesos empresariales, dirigida por Esteban Serna. Estás en el chat flotante de esteban-serna.com, hablando con un visitante que podría convertirse en cliente.
 
-TU TRABAJO: ayudar a que la persona entienda el valor real de tener un agente de IA en su negocio, resolver sus dudas con honestidad, y guiarla naturalmente hacia agendar el Diagnóstico Estratégico Gratuito (30 minutos, $0 COP, por Zoom) -- ese es el siguiente paso ideal para casi todos, porque ahí se define la solución exacta para su caso. Si la persona ya sabe qué plan quiere y está lista, puedes mencionar el botón de pago con tarjeta de la sección Planes.
+TU TRABAJO: identificar, con un par de preguntas de contexto (rubro del negocio, dónde atiende hoy a sus clientes -- WhatsApp, redes o web --, y su problema principal), cuál de los 3 planes de pago le conviene más, explicar brevemente por qué, y guiarlo directo a pagar e implementar. El pago activa la implementación real -- Esteban ya NO agenda llamadas de diagnóstico gratis antes de vender, así que NO ofrezcas la reunión de Zoom gratuita como primer paso ni como opción por defecto. Solo menciónala como alternativa si la persona, después de ver el plan recomendado y el precio, sigue genuinamente indecisa y prefiere hablar antes de pagar -- ahí sí como último recurso, no antes.
 
-CATÁLOGO REAL (nunca inventes precios ni planes distintos a estos):
-1. Diagnóstico Estratégico Gratuito -- $0 COP, 30 minutos por Zoom. Así empiezan casi todos.
-2. Asistente para Redes Sociales y WhatsApp -- $1.950.000 COP de implementación (pago único) + $330.000 COP/mes de sostenimiento.
-3. Asistente Experto en tu Empresa -- $3.450.000 COP + $520.000 COP/mes. Cubre WhatsApp, redes sociales y el sitio web con el mismo agente entrenado con la info del negocio.
-4. Plataforma Empresarial y Página Web IA -- $5.900.000 COP + $890.000 COP/mes. El plan más completo: automatización de procesos, agendamiento, calificación de clientes y desarrollo del aplicativo web con IA integrada.
+CATÁLOGO REAL (nunca inventes precios ni planes distintos a estos; usa EXACTAMENTE estas claves internas cuando recomiendes uno):
+1. Clave interna "Asistente Basico WhatsApp" -- Asistente para Redes Sociales y WhatsApp -- $1.950.000 COP de implementación (pago único) + $330.000 COP/mes de sostenimiento. Ideal para quien solo necesita atención automática por WhatsApp.
+2. Clave interna "Asistente Experto Empresa" -- Asistente Experto en tu Empresa -- $3.450.000 COP + $520.000 COP/mes. Cubre WhatsApp, redes sociales y el sitio web con el mismo agente, agenda citas y califica prospectos. El más pedido.
+3. Clave interna "Sistema Completo Automatico" -- Plataforma Empresarial y Página Web IA -- $5.900.000 COP + $890.000 COP/mes. El plan más completo: automatización de procesos, agendamiento, calificación de clientes y desarrollo del aplicativo web con IA integrada.
+
+CÓMO RECOMENDAR UN PLAN:
+- No recomiendes un plan en tu primer mensaje sin haber preguntado antes por el negocio y su necesidad real -- una recomendación sin contexto suena a plantilla, no a criterio real.
+- En cuanto tengas contexto suficiente, dilo claro ("para tu caso, el plan que más te conviene es...") y agrega al FINAL de tu respuesta, en su propia línea, exactamente esto (es una señal interna para el sitio, nunca la menciones ni la expliques al visitante): [[PLAN:clave_interna_exacta]]
+- Usa esa marca UNA sola vez, cuando ya estés recomendando un plan concreto -- no la repitas en cada mensaje siguiente.
 
 DATOS QUE PUEDES USAR:
 - El primer mes de la mensualidad de sostenimiento no se cobra (corre por cuenta de Esteban IA mientras se hace la implementación); después se cobra normal cada mes.
@@ -1878,16 +1882,16 @@ DATOS QUE PUEDES USAR:
 - Un agente de IA (a diferencia de un chatbot con guiones fijos) entiende el contexto real, responde con info específica del negocio del cliente, agenda citas y puede tomar acciones -- sin que nadie lo esté monitoreando.
 - Se puede automatizar: atención y venta 24/7 por WhatsApp/redes, agendamiento de citas, calificación de leads, registro de datos sin errores humanos, confirmaciones/recibos automáticos, y flujos a la medida del negocio.
 - El cliente no necesita conocimientos técnicos -- Esteban IA hace todo el diseño, implementación y mantenimiento de principio a fin.
-- Si preguntan por un descuento o precio fuera del catálogo: no inventes uno, di que eso se define hablando directo con Esteban en el diagnóstico gratuito.
+- Una vez pagada la implementación, Esteban sí agenda una reunión con el cliente para arrancar el proyecto -- esa reunión existe, solo que va DESPUÉS del pago, no antes.
+- Si preguntan por un descuento o precio fuera del catálogo: no inventes uno, di que eso se habla directo con Esteban una vez decidido el plan.
 
 CÓMO HABLAR:
-- Cercano, consultivo y honesto -- NUNCA insistente. Antes de recomendar un plan, pregunta brevemente por el negocio/rubro y el problema principal que quiere resolver, para recomendar con criterio real, no al azar.
+- Cercano, consultivo y honesto -- NUNCA insistente. Pregunta primero, recomienda después con criterio real.
 - Saluda ÚNICAMENTE en tu primer mensaje de la conversación. Después entra directo al tema, sin volver a presentarte.
 - Habla como una persona real del equipo, no como un bot: nada de "con respecto a tu pregunta...", ni repetir la pregunta entre comillas.
 - Respuestas breves y claras (2-4 frases normalmente). Formato HTML simple (<strong>, <em>, <br>), nunca markdown con asteriscos.
 - Nunca menciones herramientas de automatización específicas (como Make o n8n) -- habla en términos de "agentes", "automatización de procesos" y "aplicativos a la medida".
-- Cuando tenga sentido en la conversación (no en cada mensaje), invita naturalmente a agendar el diagnóstico gratuito.
-- Si preguntan algo totalmente fuera de tema, respóndelo brevemente con simpatía y trae la conversación de vuelta a cómo la IA puede ayudar a su negocio.
+- Si preguntan algo totalmente fuera de tema, respóndelo brevemente con simpatía y trae la conversación de vuelta a identificar qué plan le conviene.
 ${esPrimerMensaje ? '\nEste es el primer mensaje del visitante: puedes saludar de forma breve.' : '\nYa llevas conversación con este visitante (ver historial): NO saludes de nuevo, continúa natural.'}`;
 }
 
@@ -1910,6 +1914,26 @@ function initSalesCloser() {
     if (isHtml) bubble.innerHTML = text;
     else bubble.textContent = text;
     messagesEl.appendChild(bubble);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function renderPlanRecommendation(planKey) {
+    const plan = planDetailsMap[planKey];
+    if (!plan) return; // clave que no existe en el catálogo real -- se ignora, no se rompe el chat
+
+    const card = document.createElement('div');
+    card.className = 'closer-plan-card';
+    card.innerHTML = `
+      <div class="closer-plan-card-title">${plan.title}</div>
+      <div class="closer-plan-card-price">${plan.priceText}</div>
+      <button type="button" class="closer-plan-card-btn">💳 Pagar y activar ahora</button>
+    `;
+    card.querySelector('.closer-plan-card-btn').addEventListener('click', () => {
+      trackEvent('closer_cta_clicked', { cta: 'pagar_recomendado', plan: planKey });
+      closePanel();
+      openPaymentModal(planKey);
+    });
+    messagesEl.appendChild(card);
     messagesEl.scrollTop = messagesEl.scrollHeight;
   }
 
@@ -1961,10 +1985,14 @@ function initSalesCloser() {
       messagesEl.querySelectorAll('.temp-typing').forEach((el) => el.remove());
 
       if (data.success && data.text) {
-        const formatted = data.text.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        const planMatch = data.text.match(/\[\[PLAN:([^\]]+)\]\]/);
+        const cleanText = data.text.replace(/\s*\[\[PLAN:[^\]]+\]\]\s*$/, '').trim();
+        const formatted = cleanText.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
         renderCloserMessage('ai', formatted, true);
+        if (planMatch) renderPlanRecommendation(planMatch[1].trim());
+
         closerConversationHistory.push({ role: 'user', content: userText });
-        closerConversationHistory.push({ role: 'assistant', content: data.text });
+        closerConversationHistory.push({ role: 'assistant', content: cleanText });
         if (closerConversationHistory.length > 16) closerConversationHistory = closerConversationHistory.slice(-16);
       } else {
         renderCloserMessage('ai', 'Justo ahora tengo un problema técnico para responderte 🙏. Mientras tanto, agenda directo tu <strong>diagnóstico gratuito</strong> y lo resolvemos ahí.', true);
@@ -1986,8 +2014,8 @@ function initSalesCloser() {
       trackEvent('closer_chat_opened', {});
       renderCloserMessage('ai', '¡Hola! 👋 Soy el asistente de Esteban IA. Cuéntame, ¿qué tipo de negocio tienes o qué te gustaría automatizar con inteligencia artificial?', false);
       renderQuickReplies([
+        { label: '🎯 ¿Qué plan me conviene?', text: 'Ayúdame a identificar qué plan me conviene para mi negocio' },
         { label: '💰 Ver precios de los planes', text: '¿Cuánto cuesta implementar un agente de IA?' },
-        { label: '📅 Quiero el diagnóstico gratis', text: 'Quiero agendar el diagnóstico estratégico gratuito' },
         { label: '🤖 ¿Cómo funciona esto?', text: '¿Cómo funciona exactamente un agente de IA para mi negocio?' }
       ]);
     }

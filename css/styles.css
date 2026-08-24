@@ -2407,6 +2407,59 @@ h1, h2, h3, h4, h5 {
   color: var(--gold-light);
 }
 
+.closer-cta-row button.closer-cta-primary {
+  background: var(--gold-gradient);
+  border-color: transparent;
+  color: #0a0a0a;
+  font-weight: 700;
+}
+
+.closer-cta-row button.closer-cta-primary:hover {
+  filter: brightness(1.08);
+  color: #0a0a0a;
+}
+
+.closer-plan-card {
+  align-self: stretch;
+  background: rgba(212, 175, 55, 0.06);
+  border: 1px solid var(--gold-border-hover);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: fadeIn 0.4s ease;
+}
+
+.closer-plan-card-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.closer-plan-card-price {
+  font-size: 12.5px;
+  color: var(--gold-light);
+}
+
+.closer-plan-card-btn {
+  margin-top: 4px;
+  background: var(--gold-gradient);
+  color: #0a0a0a;
+  border: none;
+  border-radius: 20px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition-cubic);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.closer-plan-card-btn:hover {
+  filter: brightness(1.08);
+}
+
 @media (max-width: 480px) {
   #closer-launcher { right: 14px; bottom: 14px; }
   .closer-panel { right: 14px; bottom: 84px; width: calc(100vw - 28px); height: 76vh; max-height: 76vh; }
