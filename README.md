@@ -48,6 +48,7 @@ Plataforma web interactiva, embudo de ventas de alta conversión y Progressive W
      ```bash
      npm start
      ```
+   - Si no tienes Python instalado (el alias de Microsoft Store no cuenta, no funciona): `node .claude/dev-server.js` — servidor estático mínimo incluido en el repo, sin dependencias.
 
 3. Abre tu navegador e ingresa a:
    ```

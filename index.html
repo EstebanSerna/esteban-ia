@@ -175,7 +175,7 @@
   <link class="pwa-icon" rel="apple-touch-icon" href="images/icon-192.png">
   
   <!-- CSS Stylesheet (?v= se sube en cada cambio para evitar CSS viejo en caché) -->
-  <link rel="stylesheet" href="css/styles.css?v=8">
+  <link rel="stylesheet" href="css/styles.css?v=10">
 
   <!-- Mercado Pago SDK: tokeniza la tarjeta en el navegador del cliente, nunca toca nuestro servidor -->
   <script src="https://sdk.mercadopago.com/js/v2"></script>
@@ -998,6 +998,32 @@
       <button class="ios-banner-close" id="btn-close-ios-banner">&times;</button>
     </div>
 
+    <!-- FLOATING SALES CLOSER CHAT WIDGET -->
+    <div class="closer-teaser" id="closer-teaser">¿Dudas sobre agentes de IA para tu negocio? Pregúntame 👋</div>
+    <div class="closer-panel" id="closer-panel" role="dialog" aria-label="Asistente de IA de Esteban IA" aria-hidden="true">
+      <div class="closer-header">
+        <div class="closer-header-info">
+          <div class="closer-avatar">ES</div>
+          <div>
+            <div class="closer-name">Asistente Esteban IA</div>
+            <div class="closer-status"><span class="status-dot"></span> En línea</div>
+          </div>
+        </div>
+        <button id="closer-close" aria-label="Cerrar chat">&times;</button>
+      </div>
+      <div class="closer-messages" id="closer-messages"></div>
+      <div class="closer-quick-replies" id="closer-quick-replies"></div>
+      <form class="closer-input-row" id="closer-form">
+        <input type="text" id="closer-input" placeholder="Escribe tu pregunta..." autocomplete="off" maxlength="500">
+        <button type="submit" aria-label="Enviar">➤</button>
+      </form>
+      <div class="closer-cta-row">
+        <button type="button" id="closer-cta-book">📅 Diagnóstico gratis</button>
+        <button type="button" id="closer-cta-plans">💰 Ver planes</button>
+      </div>
+    </div>
+    <button id="closer-launcher" aria-label="Habla con nuestro asistente de IA" aria-expanded="false">💬</button>
+
     <!-- OVERLAYS: DIGITAL RECEIPT & EMAIL ALERT -->
     <div class="overlay" id="overlay-receipt">
       <div class="modal-card">
@@ -1107,6 +1133,6 @@
   </div>
 
   <!-- Javascript Scripts -->
-  <script src="js/app.js?v=33"></script>
+  <script src="js/app.js?v=34"></script>
 </body>
 </html>

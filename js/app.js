@@ -31,6 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initCheckoutHandler();
   initROICalculator();
   initAISimulator();
+  initSalesCloser();
 });
 
 // 1B. MOBILE / TABLET HAMBURGER MENU
@@ -1845,4 +1846,201 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
+// ============================================================
+// 12. FLOATING SALES CLOSER CHAT WIDGET
+// Asistente de IA persistente (no confundir con el simulador de
+// #simulador, que demuestra cómo se vería un agente en OTROS
+// negocios). Este habla en nombre de Esteban IA para ayudar a
+// cerrar la venta de los propios servicios. Reutiliza el mismo
+// proxy de Claude (`action: 'chat'`) que ya paga la API.
+// ============================================================
+
+const CLOSER_MAX_MESSAGES = 30; // tope por sesión, cuida el costo de la API
+let closerConversationHistory = [];
+let closerMessageCount = 0;
+let closerHasOpened = false;
+
+function buildCloserSystemPrompt(esPrimerMensaje) {
+  return `Eres el asistente de ventas de Esteban IA, una agencia colombiana de agentes de inteligencia artificial y automatización de procesos empresariales, dirigida por Esteban Serna. Estás en el chat flotante de esteban-serna.com, hablando con un visitante que podría convertirse en cliente.
+
+TU TRABAJO: ayudar a que la persona entienda el valor real de tener un agente de IA en su negocio, resolver sus dudas con honestidad, y guiarla naturalmente hacia agendar el Diagnóstico Estratégico Gratuito (30 minutos, $0 COP, por Zoom) -- ese es el siguiente paso ideal para casi todos, porque ahí se define la solución exacta para su caso. Si la persona ya sabe qué plan quiere y está lista, puedes mencionar el botón de pago con tarjeta de la sección Planes.
+
+CATÁLOGO REAL (nunca inventes precios ni planes distintos a estos):
+1. Diagnóstico Estratégico Gratuito -- $0 COP, 30 minutos por Zoom. Así empiezan casi todos.
+2. Asistente para Redes Sociales y WhatsApp -- $1.950.000 COP de implementación (pago único) + $330.000 COP/mes de sostenimiento.
+3. Asistente Experto en tu Empresa -- $3.450.000 COP + $520.000 COP/mes. Cubre WhatsApp, redes sociales y el sitio web con el mismo agente entrenado con la info del negocio.
+4. Plataforma Empresarial y Página Web IA -- $5.900.000 COP + $890.000 COP/mes. El plan más completo: automatización de procesos, agendamiento, calificación de clientes y desarrollo del aplicativo web con IA integrada.
+
+DATOS QUE PUEDES USAR:
+- El primer mes de la mensualidad de sostenimiento no se cobra (corre por cuenta de Esteban IA mientras se hace la implementación); después se cobra normal cada mes.
+- La implementación es pago único; la mensualidad cubre servidores, mantenimiento y mejoras continuas.
+- Un agente de IA (a diferencia de un chatbot con guiones fijos) entiende el contexto real, responde con info específica del negocio del cliente, agenda citas y puede tomar acciones -- sin que nadie lo esté monitoreando.
+- Se puede automatizar: atención y venta 24/7 por WhatsApp/redes, agendamiento de citas, calificación de leads, registro de datos sin errores humanos, confirmaciones/recibos automáticos, y flujos a la medida del negocio.
+- El cliente no necesita conocimientos técnicos -- Esteban IA hace todo el diseño, implementación y mantenimiento de principio a fin.
+- Si preguntan por un descuento o precio fuera del catálogo: no inventes uno, di que eso se define hablando directo con Esteban en el diagnóstico gratuito.
+
+CÓMO HABLAR:
+- Cercano, consultivo y honesto -- NUNCA insistente. Antes de recomendar un plan, pregunta brevemente por el negocio/rubro y el problema principal que quiere resolver, para recomendar con criterio real, no al azar.
+- Saluda ÚNICAMENTE en tu primer mensaje de la conversación. Después entra directo al tema, sin volver a presentarte.
+- Habla como una persona real del equipo, no como un bot: nada de "con respecto a tu pregunta...", ni repetir la pregunta entre comillas.
+- Respuestas breves y claras (2-4 frases normalmente). Formato HTML simple (<strong>, <em>, <br>), nunca markdown con asteriscos.
+- Nunca menciones herramientas de automatización específicas (como Make o n8n) -- habla en términos de "agentes", "automatización de procesos" y "aplicativos a la medida".
+- Cuando tenga sentido en la conversación (no en cada mensaje), invita naturalmente a agendar el diagnóstico gratuito.
+- Si preguntan algo totalmente fuera de tema, respóndelo brevemente con simpatía y trae la conversación de vuelta a cómo la IA puede ayudar a su negocio.
+${esPrimerMensaje ? '\nEste es el primer mensaje del visitante: puedes saludar de forma breve.' : '\nYa llevas conversación con este visitante (ver historial): NO saludes de nuevo, continúa natural.'}`;
+}
+
+function initSalesCloser() {
+  const launcher = document.getElementById('closer-launcher');
+  const panel = document.getElementById('closer-panel');
+  const closeBtn = document.getElementById('closer-close');
+  const form = document.getElementById('closer-form');
+  const input = document.getElementById('closer-input');
+  const messagesEl = document.getElementById('closer-messages');
+  const quickRepliesEl = document.getElementById('closer-quick-replies');
+  const ctaBookBtn = document.getElementById('closer-cta-book');
+  const ctaPlansBtn = document.getElementById('closer-cta-plans');
+  const teaser = document.getElementById('closer-teaser');
+  if (!launcher || !panel || !form || !input || !messagesEl) return;
+
+  function renderCloserMessage(role, text, isHtml) {
+    const bubble = document.createElement('div');
+    bubble.className = `chat-bubble ${role}`;
+    if (isHtml) bubble.innerHTML = text;
+    else bubble.textContent = text;
+    messagesEl.appendChild(bubble);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function renderQuickReplies(options) {
+    quickRepliesEl.innerHTML = '';
+    quickRepliesEl.style.display = options.length ? 'flex' : 'none';
+    options.forEach((opt) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'closer-chip';
+      btn.textContent = opt.label;
+      btn.addEventListener('click', () => {
+        quickRepliesEl.innerHTML = '';
+        quickRepliesEl.style.display = 'none';
+        sendCloserMessage(opt.text);
+      });
+      quickRepliesEl.appendChild(btn);
+    });
+  }
+
+  async function sendCloserMessage(userText) {
+    if (!userText || !userText.trim()) return;
+    renderCloserMessage('user', userText, false);
+
+    closerMessageCount++;
+    trackEvent('closer_chat_message_sent', { count: closerMessageCount });
+
+    if (closerMessageCount > CLOSER_MAX_MESSAGES) {
+      renderCloserMessage('ai', 'Para darte una recomendación precisa a tu caso, lo mejor es que hablemos directo en el diagnóstico gratuito de 30 minutos -- ahí Esteban revisa tu negocio con calma.<br><br>👉 Puedes agendarlo con el botón de abajo.', true);
+      return;
+    }
+
+    const typing = document.createElement('div');
+    typing.className = 'chat-bubble ai temp-typing';
+    typing.innerHTML = '<div class="typing-indicator"><span></span><span></span><span></span></div>';
+    messagesEl.appendChild(typing);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+
+    const systemPrompt = buildCloserSystemPrompt(closerConversationHistory.length === 0);
+    const webhookURL = localStorage.getItem('google-webhook-url') || localStorage.getItem('apps-script-url') || DEFAULT_WEBHOOK_URL;
+
+    try {
+      const res = await fetch(webhookURL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ action: 'chat', systemPrompt, userText, history: closerConversationHistory })
+      });
+      const data = await res.json();
+      messagesEl.querySelectorAll('.temp-typing').forEach((el) => el.remove());
+
+      if (data.success && data.text) {
+        const formatted = data.text.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        renderCloserMessage('ai', formatted, true);
+        closerConversationHistory.push({ role: 'user', content: userText });
+        closerConversationHistory.push({ role: 'assistant', content: data.text });
+        if (closerConversationHistory.length > 16) closerConversationHistory = closerConversationHistory.slice(-16);
+      } else {
+        renderCloserMessage('ai', 'Justo ahora tengo un problema técnico para responderte 🙏. Mientras tanto, agenda directo tu <strong>diagnóstico gratuito</strong> y lo resolvemos ahí.', true);
+      }
+    } catch (err) {
+      messagesEl.querySelectorAll('.temp-typing').forEach((el) => el.remove());
+      renderCloserMessage('ai', 'No pude conectarme justo ahora 🙏. Prueba de nuevo en un momento, o agenda directo tu diagnóstico gratuito con el botón de abajo.', true);
+    }
+  }
+
+  function openPanel() {
+    panel.classList.add('open');
+    launcher.setAttribute('aria-expanded', 'true');
+    panel.setAttribute('aria-hidden', 'false');
+    if (teaser) teaser.classList.remove('show');
+
+    if (!closerHasOpened) {
+      closerHasOpened = true;
+      trackEvent('closer_chat_opened', {});
+      renderCloserMessage('ai', '¡Hola! 👋 Soy el asistente de Esteban IA. Cuéntame, ¿qué tipo de negocio tienes o qué te gustaría automatizar con inteligencia artificial?', false);
+      renderQuickReplies([
+        { label: '💰 Ver precios de los planes', text: '¿Cuánto cuesta implementar un agente de IA?' },
+        { label: '📅 Quiero el diagnóstico gratis', text: 'Quiero agendar el diagnóstico estratégico gratuito' },
+        { label: '🤖 ¿Cómo funciona esto?', text: '¿Cómo funciona exactamente un agente de IA para mi negocio?' }
+      ]);
+    }
+    setTimeout(() => input.focus(), 300);
+  }
+
+  function closePanel() {
+    panel.classList.remove('open');
+    launcher.setAttribute('aria-expanded', 'false');
+    panel.setAttribute('aria-hidden', 'true');
+  }
+
+  launcher.addEventListener('click', () => {
+    if (panel.classList.contains('open')) closePanel();
+    else openPanel();
+  });
+  closeBtn.addEventListener('click', closePanel);
+
+  if (ctaBookBtn) {
+    ctaBookBtn.addEventListener('click', () => {
+      trackEvent('closer_cta_clicked', { cta: 'agendar' });
+      closePanel();
+      const target = document.getElementById('reservar');
+      if (target) target.scrollIntoView({ behavior: 'smooth' });
+    });
+  }
+  if (ctaPlansBtn) {
+    ctaPlansBtn.addEventListener('click', () => {
+      trackEvent('closer_cta_clicked', { cta: 'planes' });
+      closePanel();
+      const target = document.getElementById('planes');
+      if (target) target.scrollIntoView({ behavior: 'smooth' });
+    });
+  }
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = '';
+    sendCloserMessage(text);
+  });
+
+  // Teaser proactivo: aparece una sola vez por dispositivo, no en cada
+  // visita -- para acompañar sin ser invasivo.
+  if (teaser && !localStorage.getItem('closer-teaser-shown')) {
+    setTimeout(() => {
+      if (!closerHasOpened) {
+        teaser.classList.add('show');
+        localStorage.setItem('closer-teaser-shown', '1');
+        setTimeout(() => teaser.classList.remove('show'), 8000);
+      }
+    }, 9000);
+  }
+}
 
