@@ -2625,3 +2625,24 @@ h1, h2, h3, h4, h5 {
   .closer-teaser { display: none; }
 }
 
+/* CTA de cierre al final de secciones persuasivas (Antes vs Despues,
+   FAQ, Sobre Esteban) que antes terminaban sin ningun llamado a la
+   accion -- capturan el momento en que alguien ya esta convencido en
+   vez de dejarlo seguir scrolleando sin rumbo. */
+.section-closer-cta {
+  max-width: 520px;
+  margin: 48px auto 0;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+
+.section-closer-cta-text {
+  font-size: 16px;
+  color: var(--text-primary);
+  font-weight: 500;
+  line-height: 1.5;
+}
+
