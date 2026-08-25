@@ -560,6 +560,11 @@ h1, h2, h3, h4, h5 {
   overflow-y: hidden;
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
+  /* padding-top le da espacio a las insignias (.badge-free) que se
+     posicionan 14px por encima de la tarjeta -- sin este espacio,
+     overflow-y: hidden (necesario para el scroll horizontal) las
+     recortaba en movil. */
+  padding-top: 18px;
   padding-bottom: 12px;
   scrollbar-width: thin;
   scrollbar-color: rgba(212, 175, 55, 0.4) transparent;
