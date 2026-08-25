@@ -186,7 +186,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap">
 
   <!-- CSS Stylesheet (?v= se sube en cada cambio para evitar CSS viejo en caché) -->
-  <link rel="stylesheet" href="css/styles.css?v=15">
+  <link rel="stylesheet" href="css/styles.css?v=16">
 
   <!-- Mercado Pago SDK: tokeniza la tarjeta en el navegador del cliente, nunca toca nuestro servidor -->
   <script src="https://sdk.mercadopago.com/js/v2"></script>
@@ -356,6 +356,17 @@
             <div class="calculator-inputs">
               <div class="slider-group">
                 <div class="slider-header">
+                  <span class="slider-label">¿Con qué plan quieres comparar el ahorro?</span>
+                </div>
+                <div class="plan-compare-selector" id="plan-compare-selector">
+                  <button type="button" class="plan-compare-btn" data-plan="Asistente Basico WhatsApp">Básico WhatsApp<span class="plan-compare-btn-price">$1.950.000 + $330k/mes</span></button>
+                  <button type="button" class="plan-compare-btn active" data-plan="Asistente Experto Empresa">Experto Empresa<span class="plan-compare-btn-price">$3.450.000 + $520k/mes</span></button>
+                  <button type="button" class="plan-compare-btn" data-plan="Sistema Completo Automatico">Plataforma Empresarial<span class="plan-compare-btn-price">$5.900.000 + $890k/mes</span></button>
+                </div>
+              </div>
+
+              <div class="slider-group">
+                <div class="slider-header">
                   <span class="slider-label">¿Cuántas personas en tu empresa atienden clientes o responden mensajes?</span>
                   <span class="slider-val-badge" id="val-collab">1 persona</span>
                 </div>
@@ -396,7 +407,7 @@
                 <div class="result-box" style="border-color: var(--success-color); background: rgba(46, 204, 113, 0.06);">
                   <div class="result-title">🤖 1 Asistente de IA (Cobertura Total 24/7)</div>
                   <div class="result-number highlight" id="res-cost-ia" style="font-size: 24px;">$520.000 COP/mes</div>
-                  <span style="font-size: 11px; color: var(--gold-light);">1 Agente Virtual · 24/7 Sin pausas ni descansos</span>
+                  <span style="font-size: 11px; color: var(--gold-light);" id="sub-cost-ia">Plan: Asistente Experto Empresa · 24/7 Sin pausas ni descansos</span>
                 </div>
               </div>
 
@@ -1175,6 +1186,6 @@
   </div>
 
   <!-- Javascript Scripts -->
-  <script src="js/app.js?v=39"></script>
+  <script src="js/app.js?v=40"></script>
 </body>
 </html>

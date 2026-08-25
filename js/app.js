@@ -668,6 +668,7 @@ function initROICalculator() {
   const resCost247Human = document.getElementById('res-cost-247-human');
   const subCost247Human = document.getElementById('sub-cost-247-human');
   const resCostIA = document.getElementById('res-cost-ia');
+  const subCostIA = document.getElementById('sub-cost-ia');
   const resMoney = document.getElementById('res-money');
 
   const formulaManual = document.getElementById('formula-manual');
@@ -675,6 +676,9 @@ function initROICalculator() {
   const formulaRoi = document.getElementById('formula-roi');
   const formulaRecupero = document.getElementById('formula-recupero');
   const descRecupero = document.getElementById('desc-recupero');
+
+  const planCompareButtons = document.querySelectorAll('.plan-compare-btn');
+  let selectedPlanKey = 'Asistente Experto Empresa'; // igual al plan que ya venia fijo
 
   function formatCOP(amount) {
     return '$' + Math.round(amount).toLocaleString('es-CO') + ' COP';
@@ -697,16 +701,19 @@ function initROICalculator() {
     const hours247Month = Math.round(24 * 30 * collab);
     const totalCost247Human = Math.round(hours247Month * cost);
 
-    // 3. AI Assistant Cost
-    const costIA = 520000; // $520.000 COP/mes (Sostenimiento & Servidores)
+    // 3. AI Assistant Cost -- usa el plan que la persona eligio en el
+    // selector, en vez de un plan fijo. planDetailsMap se define mas abajo
+    // en este archivo, pero ya esta inicializado para cuando esto corre
+    // (solo se ejecuta con interaccion del usuario, despues de la carga).
+    const selectedPlan = planDetailsMap[selectedPlanKey] || planDetailsMap['Asistente Experto Empresa'];
+    const costIA = selectedPlan.monthlyAmount;
     const netSavings247 = Math.max(0, totalCost247Human - costIA);
 
     // 4. Cuanto tarda en "pagarse sola" la implementacion, usando el mismo
-    // plan de referencia (Asistente Experto Empresa) que costIA arriba --
-    // comparado contra el gasto humano ACTUAL (no el de 24/7), que es la
-    // comparacion mas honesta: "cuanto de lo que ya gastas hoy en personal
-    // cubre ese pago unico".
-    const implementacionReferencia = 3450000; // Asistente Experto Empresa, pago unico
+    // plan elegido arriba -- comparado contra el gasto humano ACTUAL (no el
+    // de 24/7), que es la comparacion mas honesta: "cuanto de lo que ya
+    // gastas hoy en personal cubre ese pago unico".
+    const implementacionReferencia = selectedPlan.oneTimeAmount;
 
     if (resCostManual) resCostManual.textContent = `${formatCOP(totalCostActualMonth)}/mes`;
     if (subCostManual) subCostManual.textContent = `${collab} ${collab === 1 ? 'persona' : 'personas'} · ${hours}h/día (${totalHoursActualMonth.toLocaleString('es-CO')} hrs/mes)`;
@@ -715,6 +722,7 @@ function initROICalculator() {
     if (subCost247Human) subCost247Human.textContent = `${collab * 3} empleados rotativos · 24/7 (${hours247Month.toLocaleString('es-CO')} hrs/mes)`;
 
     if (resCostIA) resCostIA.textContent = `${formatCOP(costIA)}/mes`;
+    if (subCostIA) subCostIA.textContent = `Plan: ${selectedPlan.title} · 24/7 Sin pausas ni descansos`;
     if (resMoney) resMoney.textContent = `${formatCOP(netSavings247)}/mes`;
 
     if (formulaManual) {
@@ -755,6 +763,16 @@ function initROICalculator() {
   collabSlider.addEventListener('input', () => { trackROIUsageOnce(); calculateROI(); });
   hoursSlider.addEventListener('input', () => { trackROIUsageOnce(); calculateROI(); });
   costSlider.addEventListener('input', () => { trackROIUsageOnce(); calculateROI(); });
+
+  planCompareButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      selectedPlanKey = btn.dataset.plan;
+      planCompareButtons.forEach((b) => b.classList.toggle('active', b === btn));
+      trackROIUsageOnce();
+      trackEvent('roi_plan_compare_changed', { plan: selectedPlanKey });
+      calculateROI();
+    });
+  });
 
   calculateROI();
 }

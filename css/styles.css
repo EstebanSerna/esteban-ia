@@ -1736,6 +1736,55 @@ h1, h2, h3, h4, h5 {
   border: 1px solid rgba(212, 175, 55, 0.25);
 }
 
+/* Selector de plan de referencia para la calculadora de ROI -- deja
+   elegir con cual de los 3 planes reales se compara el ahorro, en vez
+   de siempre usar el mismo plan fijo como referencia. */
+.plan-compare-selector {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.plan-compare-btn {
+  flex: 1 1 140px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--text-secondary);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-cubic);
+  text-align: center;
+}
+
+.plan-compare-btn:hover {
+  border-color: var(--gold-border-hover);
+  color: var(--text-primary);
+}
+
+.plan-compare-btn.active {
+  background: rgba(212, 175, 55, 0.1);
+  border-color: var(--gold-primary);
+  color: var(--gold-light);
+}
+
+.plan-compare-btn-price {
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.plan-compare-btn.active .plan-compare-btn-price {
+  color: var(--gold-light);
+  opacity: 0.85;
+}
+
 .custom-range-slider {
   -webkit-appearance: none;
   width: 100%;
