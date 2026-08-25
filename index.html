@@ -186,7 +186,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap">
 
   <!-- CSS Stylesheet (?v= se sube en cada cambio para evitar CSS viejo en caché) -->
-  <link rel="stylesheet" href="css/styles.css?v=14">
+  <link rel="stylesheet" href="css/styles.css?v=15">
 
   <!-- Mercado Pago SDK: tokeniza la tarjeta en el navegador del cliente, nunca toca nuestro servidor -->
   <script src="https://sdk.mercadopago.com/js/v2"></script>
@@ -645,9 +645,14 @@
               <div class="price-header">
                 <h3 class="price-package-name text-gradient">Diagnóstico Gratis</h3>
               </div>
-              <div class="price-details">
-                <span class="price-amount">$0</span>
-                <span class="price-unit">COP</span>
+              <div class="price-details two-part">
+                <div class="price-line">
+                  <span class="price-line-label">Diagnóstico · sin costo</span>
+                  <div class="price-line-value">
+                    <span class="price-amount">$0</span>
+                    <span class="price-unit">COP</span>
+                  </div>
+                </div>
               </div>
               <ul class="price-features-list">
                 <li class="price-feature-item">
@@ -663,7 +668,7 @@
                   <span class="price-feature-text">Mapa Estratégico de Asistentes IA</span>
                 </li>
               </ul>
-              <a href="#reservar" class="price-cta-btn primary" onclick="selectService('Diagnostico Gratuito')">Agendar Diagnóstico Gratis</a>
+              <a href="#reservar" class="price-cta-btn primary" onclick="selectService('Diagnostico Gratuito')">Agendar Diagnóstico</a>
             </div>
 
             <!-- Tier 2: ASISTENTE DE REDES SOCIALES & WHATSAPP -->
@@ -816,7 +821,7 @@
                   <span class="price-feature-text">INCLUYE: Servidor Dedicado & Respaldos</span>
                 </li>
               </ul>
-              <a href="#reservar" class="price-cta-btn secondary" onclick="openPaymentModal('Sistema Completo Automatico')">Solicitar Plataforma Empresarial</a>
+              <a href="#reservar" class="price-cta-btn secondary" onclick="openPaymentModal('Sistema Completo Automatico')">Solicitar Plataforma</a>
             </div>
 
           </div>
