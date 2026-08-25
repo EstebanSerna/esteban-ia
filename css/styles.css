@@ -1,5 +1,6 @@
-/* Import modern premium fonts */
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+/* Las fuentes (Outfit, Plus Jakarta Sans) se cargan desde <link> en el
+   <head> de index.html, no con @import aqui -- ver el comentario en el
+   HTML para el por que (afecta el CLS). */
 
 /* Redefined CSS Variables for Luxury Marketing & Quantum Depth */
 :root {
