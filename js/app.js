@@ -1511,19 +1511,19 @@ function initAISimulator() {
 const planDetailsMap = {
   'Asistente Basico WhatsApp': {
     title: 'Asistente para Redes Sociales & WhatsApp',
-    priceText: 'Inversión: <strong>$1.950.000 COP</strong> + $330.000 COP/mes',
+    priceText: 'Implementación (pago único): <strong>$1.950.000 COP</strong><br><span style="color: var(--gold-light); font-size: 13px;">Sostenimiento mensual: <strong>$330.000 COP/mes</strong></span>',
     oneTimeAmount: 1950000,
     monthlyAmount: 330000
   },
   'Asistente Experto Empresa': {
     title: 'Asistente Experto en tu Empresa',
-    priceText: 'Inversión: <strong>$3.450.000 COP</strong> + $520.000 COP/mes',
+    priceText: 'Implementación (pago único): <strong>$3.450.000 COP</strong><br><span style="color: var(--gold-light); font-size: 13px;">Sostenimiento mensual: <strong>$520.000 COP/mes</strong></span>',
     oneTimeAmount: 3450000,
     monthlyAmount: 520000
   },
   'Sistema Completo Automatico': {
     title: 'Plataforma Empresarial & Página Web IA',
-    priceText: 'Inversión: <strong>$5.900.000 COP</strong> + $890.000 COP/mes',
+    priceText: 'Implementación (pago único): <strong>$5.900.000 COP</strong><br><span style="color: var(--gold-light); font-size: 13px;">Sostenimiento mensual: <strong>$890.000 COP/mes</strong></span>',
     oneTimeAmount: 5900000,
     monthlyAmount: 890000
   }

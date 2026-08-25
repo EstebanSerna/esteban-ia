@@ -186,7 +186,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap">
 
   <!-- CSS Stylesheet (?v= se sube en cada cambio para evitar CSS viejo en caché) -->
-  <link rel="stylesheet" href="css/styles.css?v=13">
+  <link rel="stylesheet" href="css/styles.css?v=14">
 
   <!-- Mercado Pago SDK: tokeniza la tarjeta en el navegador del cliente, nunca toca nuestro servidor -->
   <script src="https://sdk.mercadopago.com/js/v2"></script>
@@ -633,10 +633,10 @@
             <div class="section-tagline">INVERSIÓN ESTRATÉGICA</div>
             <h2 class="section-title text-gradient">Planes de Automatización para tu Empresa</h2>
             <p class="section-description">
-              Soluciones diseñadas a la medida según la escala y visión de crecimiento de tu empresa:
+              Soluciones diseñadas a la medida según la escala y visión de crecimiento de tu empresa. Cada plan tiene <strong style="color:#fff;">dos pagos separados y claros</strong>: una <strong style="color:#fff;">implementación única</strong> (construir tu agente, se paga una sola vez) y una <strong style="color:#fff;">mensualidad de sostenimiento</strong> (servidores, mantenimiento y mejoras mientras tu agente sigue funcionando).
             </p>
           </div>
-          
+
           <div class="value-ladder-grid">
             
             <!-- Tier 1: DIAGNÓSTICO GRATIS -->
@@ -671,16 +671,23 @@
               <div class="price-header">
                 <h3 class="price-package-name">Asistente para Redes Sociales & WhatsApp</h3>
               </div>
-              <div class="price-details" style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px;">
-                <div>
-                  <span style="text-decoration: line-through; opacity: 0.45; font-size: 16px; margin-right: 6px; color: #fff;">$2.800.000</span>
-                  <span class="price-amount" style="font-size: 26px;">$1.950.000</span>
-                  <span class="price-unit">COP Único</span>
+              <div class="price-details two-part">
+                <div class="price-line">
+                  <span class="price-line-label">Implementación · pago único</span>
+                  <div class="price-line-value">
+                    <span class="price-strike">$2.800.000</span>
+                    <span class="price-amount" style="font-size: 26px;">$1.950.000</span>
+                    <span class="price-unit">COP</span>
+                  </div>
                 </div>
-                <div style="font-size: 13px; color: var(--gold-light); font-weight: 600;">
-                  + $330.000 COP/mes Sostenimiento & Servidores
+                <div class="price-line price-line-monthly">
+                  <span class="price-line-label">Sostenimiento · mensual (servidores y ajustes)</span>
+                  <div class="price-line-value">
+                    <span class="price-amount-sm">$330.000</span>
+                    <span class="price-unit">COP/mes</span>
+                  </div>
                 </div>
-                <span class="saving-badge" style="margin-top: 4px;">🔥 Ahorras $850.000 COP</span>
+                <span class="saving-badge">🔥 Ahorras $850.000 COP en la implementación</span>
               </div>
               <ul class="price-features-list" style="margin-top: 15px;">
                 <li class="price-feature-item">
@@ -713,16 +720,23 @@
               <div class="price-header">
                 <h3 class="price-package-name text-gradient">Asistente Experto en tu Empresa</h3>
               </div>
-              <div class="price-details" style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px;">
-                <div>
-                  <span style="text-decoration: line-through; opacity: 0.45; font-size: 16px; margin-right: 6px; color: #fff;">$4.900.000</span>
-                  <span class="price-amount" style="font-size: 26px;">$3.450.000</span>
-                  <span class="price-unit">COP Único</span>
+              <div class="price-details two-part">
+                <div class="price-line">
+                  <span class="price-line-label">Implementación · pago único</span>
+                  <div class="price-line-value">
+                    <span class="price-strike">$4.900.000</span>
+                    <span class="price-amount" style="font-size: 26px;">$3.450.000</span>
+                    <span class="price-unit">COP</span>
+                  </div>
                 </div>
-                <div style="font-size: 13px; color: var(--gold-light); font-weight: 600;">
-                  + $520.000 COP/mes Sostenimiento & Modificaciones
+                <div class="price-line price-line-monthly">
+                  <span class="price-line-label">Sostenimiento · mensual (servidores y modificaciones)</span>
+                  <div class="price-line-value">
+                    <span class="price-amount-sm">$520.000</span>
+                    <span class="price-unit">COP/mes</span>
+                  </div>
                 </div>
-                <span class="saving-badge" style="margin-top: 4px;">🔥 Ahorras $1.450.000 COP</span>
+                <span class="saving-badge">🔥 Ahorras $1.450.000 COP en la implementación</span>
               </div>
               <ul class="price-features-list" style="margin-top: 15px;">
                 <li class="price-feature-item">
@@ -754,16 +768,23 @@
               <div class="price-header">
                 <h3 class="price-package-name">Plataforma Empresarial & Página Web IA</h3>
               </div>
-              <div class="price-details" style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px;">
-                <div>
-                  <span style="text-decoration: line-through; opacity: 0.45; font-size: 16px; margin-right: 6px; color: #fff;">$8.500.000</span>
-                  <span class="price-amount" style="font-size: 26px;">$5.900.000</span>
-                  <span class="price-unit">COP Único</span>
+              <div class="price-details two-part">
+                <div class="price-line">
+                  <span class="price-line-label">Implementación · pago único</span>
+                  <div class="price-line-value">
+                    <span class="price-strike">$8.500.000</span>
+                    <span class="price-amount" style="font-size: 26px;">$5.900.000</span>
+                    <span class="price-unit">COP</span>
+                  </div>
                 </div>
-                <div style="font-size: 13px; color: var(--gold-light); font-weight: 600;">
-                  + $890.000 COP/mes Mantenimiento & Métricas
+                <div class="price-line price-line-monthly">
+                  <span class="price-line-label">Sostenimiento · mensual (servidor y métricas)</span>
+                  <div class="price-line-value">
+                    <span class="price-amount-sm">$890.000</span>
+                    <span class="price-unit">COP/mes</span>
+                  </div>
                 </div>
-                <span class="saving-badge" style="margin-top: 4px;">👑 Máximo Valor Empresarial</span>
+                <span class="saving-badge">👑 Máximo Valor Empresarial</span>
               </div>
               <ul class="price-features-list" style="margin-top: 15px;">
                 <li class="price-feature-item">
@@ -906,9 +927,9 @@
                   <label class="form-label" for="booking-service">Servicio que te interesa</label>
                   <select class="form-select" id="booking-service" required>
                     <option value="Diagnostico Gratuito" selected>Diagnóstico Estratégico Gratis (30 min - $0 COP)</option>
-                    <option value="Asistente Basico WhatsApp">Asistente para Redes Sociales & WhatsApp ($1.950.000 COP + $330k/mes)</option>
-                    <option value="Asistente Experto Empresa">Asistente Experto Empresa ($3.450.000 COP + $520k/mes)</option>
-                    <option value="Sistema Completo Automatico">Plataforma Empresarial & Web IA ($5.900.000 COP + $890k/mes)</option>
+                    <option value="Asistente Basico WhatsApp">Asistente para Redes Sociales & WhatsApp ($1.950.000 COP único + $330k/mes)</option>
+                    <option value="Asistente Experto Empresa">Asistente Experto Empresa ($3.450.000 COP único + $520k/mes)</option>
+                    <option value="Sistema Completo Automatico">Plataforma Empresarial & Web IA ($5.900.000 COP único + $890k/mes)</option>
                   </select>
                 </div>
                 
@@ -1069,7 +1090,7 @@
         </div>
         
         <p class="modal-desc" id="payment-modal-plan-price" style="font-size: 15px; color: #fff; margin-bottom: 20px;">
-          Inversión: <strong>$3.450.000 COP</strong> + $520.000 COP/mes
+          Implementación (pago único): <strong>$3.450.000 COP</strong><br><span style="color: var(--gold-light); font-size: 13px;">Sostenimiento mensual: <strong>$520.000 COP/mes</strong></span>
         </p>
 
         <!-- CHECKOUT EMBEBIDO: 1 sola tarjeta, cobra el pago unico y activa la suscripcion -->
@@ -1144,6 +1165,6 @@
   </div>
 
   <!-- Javascript Scripts -->
-  <script src="js/app.js?v=37"></script>
+  <script src="js/app.js?v=38"></script>
 </body>
 </html>

@@ -701,6 +701,57 @@ h1, h2, h3, h4, h5 {
   margin-left: auto;
 }
 
+/* Precio en dos partes claramente etiquetadas: implementacion (pago
+   unico) y sostenimiento (mensual) -- feedback real de usuarios decia
+   que se confundian sobre cuales de los dos numeros era cual. */
+.price-details.two-part {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 14px;
+}
+
+.price-line {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.price-line-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.price-line-monthly .price-line-label {
+  color: var(--gold-light);
+}
+
+.price-line-value {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.price-strike {
+  text-decoration: line-through;
+  opacity: 0.45;
+  font-size: 16px;
+  color: #fff;
+}
+
+.price-amount-sm {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--gold-light);
+}
+
+.two-part .saving-badge {
+  align-self: flex-start;
+  margin-left: 0;
+}
+
 .price-features-list {
   list-style: none;
   margin-bottom: 30px;
