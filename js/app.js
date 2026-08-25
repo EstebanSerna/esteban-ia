@@ -673,6 +673,8 @@ function initROICalculator() {
   const formulaManual = document.getElementById('formula-manual');
   const formulaHuman247 = document.getElementById('formula-human-247');
   const formulaRoi = document.getElementById('formula-roi');
+  const formulaRecupero = document.getElementById('formula-recupero');
+  const descRecupero = document.getElementById('desc-recupero');
 
   function formatCOP(amount) {
     return '$' + Math.round(amount).toLocaleString('es-CO') + ' COP';
@@ -699,6 +701,13 @@ function initROICalculator() {
     const costIA = 520000; // $520.000 COP/mes (Sostenimiento & Servidores)
     const netSavings247 = Math.max(0, totalCost247Human - costIA);
 
+    // 4. Cuanto tarda en "pagarse sola" la implementacion, usando el mismo
+    // plan de referencia (Asistente Experto Empresa) que costIA arriba --
+    // comparado contra el gasto humano ACTUAL (no el de 24/7), que es la
+    // comparacion mas honesta: "cuanto de lo que ya gastas hoy en personal
+    // cubre ese pago unico".
+    const implementacionReferencia = 3450000; // Asistente Experto Empresa, pago unico
+
     if (resCostManual) resCostManual.textContent = `${formatCOP(totalCostActualMonth)}/mes`;
     if (subCostManual) subCostManual.textContent = `${collab} ${collab === 1 ? 'persona' : 'personas'} · ${hours}h/día (${totalHoursActualMonth.toLocaleString('es-CO')} hrs/mes)`;
 
@@ -716,6 +725,20 @@ function initROICalculator() {
     }
     if (formulaRoi) {
       formulaRoi.textContent = `1 Asistente IA = ${formatCOP(costIA)}/mes vs ${formatCOP(totalCost247Human)}/mes en personal`;
+    }
+
+    if (formulaRecupero || descRecupero) {
+      const mesesRecuperacion = implementacionReferencia / totalCostActualMonth;
+      const tiempoTexto = mesesRecuperacion < 1
+        ? `${Math.max(1, Math.round(mesesRecuperacion * 30))} días`
+        : `${mesesRecuperacion.toFixed(1).replace('.', ',')} meses`;
+
+      if (formulaRecupero) {
+        formulaRecupero.textContent = `${formatCOP(implementacionReferencia)} implementación ÷ ${formatCOP(totalCostActualMonth)} tu gasto humano actual/mes = ${tiempoTexto}`;
+      }
+      if (descRecupero) {
+        descRecupero.textContent = `Piensa en la implementación como el sueldo de un empleado: se paga UNA sola vez, no cada mes. Con lo que hoy gastas en personal en solo ${tiempoTexto} ya cubrirías esa inversión única — de ahí en adelante solo pagas ${formatCOP(costIA)}/mes de sostenimiento, y todo lo demás es ahorro neto.`;
+      }
     }
   }
 
