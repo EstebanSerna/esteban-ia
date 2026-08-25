@@ -592,6 +592,11 @@ h1, h2, h3, h4, h5 {
   -webkit-backdrop-filter: blur(15px);
   flex: 0 0 78%;
   scroll-snap-align: center;
+  /* Obliga a que el scroll se detenga en CADA tarjeta, una por una --
+     sin esto, un deslizamiento rapido puede saltarse el punto de
+     centrado y dejar la tarjeta a mitad de camino (mas comun en
+     Android/Chrome con gestos rapidos que en iOS/Safari). */
+  scroll-snap-stop: always;
 }
 
 @media (min-width: 480px) {
