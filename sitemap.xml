@@ -42,4 +42,10 @@
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
+  <url>
+    <loc>https://esteban-serna.com/blog/posts/agente-de-ia-para-restaurantes-pedidos-y-reservas-24-7.html</loc>
+    <lastmod>2026-09-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
 </urlset>
