@@ -3,13 +3,13 @@
 ## Project Overview
 **Esteban IA** (`esteban-ia`) is a high-converting web platform and Progressive Web App (PWA) designed for **Esteban Serna** — AI & Enterprise Automation Specialist. The platform serves as an interactive sales funnel, service showcase, ROI savings calculator, interactive AI simulator, diagnostic booking engine, and embedded Mercado Pago checkout (one-time implementation fee + recurring monthly subscription, charged with a single card entry).
 
-**Backend**: the live backend is a separate Node.js/Express project — **`esteban-ia-backend`** (repo `EstebanSerna/esteban-ia-backend`, deployed on Railway, auto-deploys on push to `main`). It replaced the original Google Apps Script backend (`google-apps-script.js`, still in this repo and still deployed, kept only as a documented fallback — the live site does not call it). If you're working on backend logic (chat proxy, bookings/Calendar, Mercado Pago checkout, notifications), edit the Railway project, not `google-apps-script.js`, unless explicitly asked to update the fallback too.
+**Backend**: the live backend is a separate Node.js/Express project — **`esteban-ia-backend`** (repo `EstebanSerna/esteban-ia-backend`, deployed on Railway, auto-deploys on push to `main`). It replaced the original Google Apps Script backend (`google-apps-script.js`, still in this repo and still deployed in Google as a fallback, but no longer served by the website — the live site does not call it). If you're working on backend logic (chat proxy, bookings/Calendar, Mercado Pago checkout, notifications), edit the Railway project, not `google-apps-script.js`, unless explicitly asked to update the fallback too.
 
 **Blog**: `blog/` in this repo is generated content, not hand-written. `esteban-ia-backend` researches
 a topic with Claude (real web search) every 3 days, drafts an article, and — after Esteban approves
 it by email — writes the final static pages (`blog/index.html`, `blog/posts/{slug}.html`, cover
-images, `posts.json` manifest) straight into this repo via the GitHub API, which triggers this repo's
-own deploy. Don't hand-edit files under `blog/` expecting them to survive — the next publish or
+images, `posts.json` manifest) straight into this repo via the GitHub API, which makes Railway
+redeploy this site. Don't hand-edit files under `blog/` expecting them to survive — the next publish or
 regeneration overwrites them. See `esteban-ia-backend/README.md` ("Blog automático") for the full
 pipeline.
 
@@ -52,7 +52,8 @@ esteban-ia/
 │   ├── index.html          # Blog listing page, regenerated on every publish
 │   ├── posts/               # Published articles + cover images + {slug}.json (article data)
 │   └── drafts/              # Unpublished drafts awaiting email approval (noindex, blocked in robots.txt)
-├── google-apps-script.js   # FALLBACK backend (unused by the live site, see Backend section above)
+├── server.js               # Static web server used on Railway (zero deps; see Deployment section)
+├── google-apps-script.js   # FALLBACK backend (unused by the live site, not publicly served)
 ├── manifest.json           # Progressive Web App (PWA) manifest
 ├── sw.js                   # Service Worker for offline caching & PWA support
 ├── robots.txt              # Disallows /blog/drafts/
@@ -184,31 +185,36 @@ esteban-ia/
 
 ---
 
-## 🚀 Deployment (GitHub Actions → SFTP → StackCP)
+## 🚀 Deployment (Railway — static Node server)
 
-`.github/workflows/deploy.yml` pushes `dist/` to the StackCP/HostCarriel host on every push to
-`main`. StackCP only allows the **pure SFTP protocol** (no SSH `exec` subsystem), which constrains
-the deploy action used (`wlixcc/SFTP-Deploy-Action@v1.2.6`, `sftp_only: true`):
+Since 2026-10-06 the site is served from **Railway** (service `esteban-ia-web`, same project as the
+backend), not from the StackCP/HostCarriel hosting. Railway watches this repo's `main` branch and
+redeploys on every push — no FTP/SFTP, no GitHub secrets, no `dist/` folder.
 
-- It does **not** auto-create new remote directories — a dedicated step runs `sshpass` + `sftp` in
-  batch mode (`-mkdir /public_html/blog` etc., leading `-` = continue if it already exists) before
-  the main upload, so new folders like `blog/` work.
-- It does **not** support `delete_remote_files: true` (that option needs the SSH `exec` subsystem,
-  which StackCP blocks — fails with `exec request failed on channel 0`). Instead, a dedicated step
-  computes `git diff --name-only --diff-filter=D "${{ github.event.before }}" "${{ github.sha }}"`
-  (requires `actions/checkout@v4` with `fetch-depth: 0`) and issues `-rm` for each deleted file via
-  the same pure-SFTP batch mechanism. Guarded with `if: github.event_name == 'push'` since
-  `github.event.before` doesn't exist for manual `workflow_dispatch` runs.
-- `concurrency: { group: deploy-main, cancel-in-progress: false }` at the workflow level serializes
-  deploys — a single blog publish can trigger 5-6 sequential commits from the backend (draft →
-  publish → sitemap → manifest → index), each auto-triggering its own workflow run; without this, a
-  faster later run could finish before/overwrite a slower earlier one.
-- The "build dist/" step copies `blog/` into `dist/` too (`[ -d blog ] && cp -r blog dist/`) — if
-  you add new top-level content folders, add them here or they won't deploy.
-
-If you need to touch this workflow, don't re-enable `delete_remote_files: true` or add a plain
-`exec`-based step — both fail on this host. Pure SFTP (mkdir/put/rm in batch mode) is the only thing
-that works here.
+- **`server.js`** (repo root, zero dependencies) is the whole web server. `npm start` runs it.
+  It ports what used to live in `.htaccess`: bare domain → `www` redirect (301), http → https,
+  MIME types, br/gzip compression, caching (HTML 60s; CSS/JS 1 month when the URL has `?v=N`,
+  5 min otherwise; images 1 year), `sw.js` no-cache + `Service-Worker-Allowed`, and `noindex` for
+  `blog/drafts/`.
+- **Allowlist, not a blacklist**: only `index.html`, `manifest.json`, `sw.js`, `robots.txt`,
+  `sitemap.xml` and the `css/`, `js/`, `images/`, `blog/` folders are served (see `ROOT_FILES` /
+  `PUBLIC_DIRS` in `server.js`). **If you add a new top-level page or folder, add it there** or it
+  will 404. Everything else (CLAUDE.md, README, `.github/`, `google-apps-script.js`, etc.) is
+  intentionally not public.
+- **Domain/DNS** (zone lives in StackDNS, managed from the StackCP panel): `www` is a CNAME to the
+  Railway target (`v0aeg7zt.up.railway.app`) plus a `_railway-verify.www` TXT record. The bare
+  domain (`esteban-serna.com`) still has A/AAAA records pointing at the old StackCP hosting, which
+  keeps answering with the `.htaccess` redirect to `www` — **don't delete those A/AAAA records**
+  (deleting them breaks the bare domain; it happened once) **and don't cancel the StackCP hosting**:
+  it still hosts the email (`mx.stackmail.com`, `info@esteban-serna.com`) and that redirect.
+- **Blog publishing**: the backend commits to this repo through the GitHub API; each commit
+  triggers a Railway redeploy (a publish makes ~8 commits, so a few quick builds — harmless).
+- **Local preview**: `npm start` → http://localhost:8080 (python is not installed on the dev machine).
+- **Old SFTP workflow**: `.github/workflows/deploy.yml` is kept but **disabled** (manual
+  `workflow_dispatch` only) as an emergency fallback to the StackCP hosting. It needs the
+  `FTP_SERVER` / `FTP_USERNAME` / `FTP_PASSWORD` repo secrets; the real FTP user is
+  `estebanserna@esteban-serna.com` and StackCP locks FTP by IP, which is why GitHub Actions stopped
+  working and why the site moved to Railway.
 
 ---
 
@@ -240,8 +246,8 @@ that works here.
 ## 💡 Guidelines for Claude Code Modifications
 
 1. **Vanilla Architecture**: Keep code native HTML5/CSS3/Vanilla JS. Do not introduce large build tools (Webpack, Vite, React) unless explicitly requested.
-2. **Two separate repos**: this repo (`esteban-ia`) is the static frontend, deployed via GitHub
-   Actions/SFTP. Backend logic lives in the sibling folder/repo `esteban-ia-backend`
+2. **Two separate repos**: this repo (`esteban-ia`) is the static frontend, deployed on Railway
+   (service `esteban-ia-web`, auto-deploys on push to `main`). Backend logic lives in the sibling folder/repo `esteban-ia-backend`
    (`EstebanSerna/esteban-ia-backend` on GitHub, deployed on Railway) — edit that repo for chat
    proxy, bookings, or checkout changes, not `google-apps-script.js` here (that one's the unused
    fallback — see Backend section above).
@@ -264,5 +270,5 @@ that works here.
    quality ~82 with no visible quality loss, likely still the page's LCP element) — large images are
    the most common cause of a slow load on this otherwise-lightweight static site.
 9. **Cache-busting**: `index.html` loads `css/styles.css?v=N` / `js/app.js?v=N` — bump the version
-   query string when editing either file, or StackCP/browser caching can serve the stale version
+   query string when editing either file, or browser caching can serve the stale version
    after deploy.
