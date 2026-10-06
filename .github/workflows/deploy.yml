@@ -38,9 +38,19 @@ jobs:
           [ -d blog ] && cp -r blog dist/ || echo "Sin carpeta blog/ todavia, se omite"
 
       - name: Crear carpetas nuevas en el servidor (SFTP-Deploy-Action no las crea en modo sftp_only)
+        # Las credenciales se pasan por variables de entorno (sshpass -e) en
+        # vez de incrustarlas en el comando: si la contrasena tiene $, comillas
+        # o \ el shell la rompia y la conexion fallaba al instante.
+        env:
+          SSHPASS: ${{ secrets.FTP_PASSWORD }}
+          FTP_USER: ${{ secrets.FTP_USERNAME }}
+          FTP_HOST: ${{ secrets.FTP_SERVER }}
         run: |
+          [ -z "$SSHPASS" ] && echo "ERROR: el secreto FTP_PASSWORD esta vacio o no existe en este repositorio" && exit 1
+          [ -z "$FTP_USER" ] && echo "ERROR: el secreto FTP_USERNAME esta vacio o no existe" && exit 1
+          [ -z "$FTP_HOST" ] && echo "ERROR: el secreto FTP_SERVER esta vacio o no existe" && exit 1
           which sshpass > /dev/null 2>&1 || sudo apt-get install -y sshpass
-          sshpass -p "${{ secrets.FTP_PASSWORD }}" sftp -oStrictHostKeyChecking=no -oBatchMode=no -P 22 "${{ secrets.FTP_USERNAME }}@${{ secrets.FTP_SERVER }}" << 'EOF'
+          sshpass -e sftp -oStrictHostKeyChecking=no -oBatchMode=no -oConnectTimeout=20 -P 22 "$FTP_USER@$FTP_HOST" << 'EOF'
           -mkdir /public_html/blog
           -mkdir /public_html/blog/drafts
           -mkdir /public_html/blog/posts
@@ -66,6 +76,10 @@ jobs:
       # no trae "before").
       - name: Borrar en el servidor los archivos que se borraron en este push
         if: github.event_name == 'push'
+        env:
+          SSHPASS: ${{ secrets.FTP_PASSWORD }}
+          FTP_USER: ${{ secrets.FTP_USERNAME }}
+          FTP_HOST: ${{ secrets.FTP_SERVER }}
         run: |
           DELETED=$(git diff --name-only --diff-filter=D "${{ github.event.before }}" "${{ github.sha }}" 2>/dev/null || true)
           if [ -z "$DELETED" ]; then
@@ -79,5 +93,5 @@ jobs:
               done
               echo "bye"
             } > /tmp/sftp_delete_batch.txt
-            sshpass -p "${{ secrets.FTP_PASSWORD }}" sftp -oStrictHostKeyChecking=no -oBatchMode=no -P 22 -b /tmp/sftp_delete_batch.txt "${{ secrets.FTP_USERNAME }}@${{ secrets.FTP_SERVER }}"
+            sshpass -e sftp -oStrictHostKeyChecking=no -oBatchMode=no -P 22 -b /tmp/sftp_delete_batch.txt "$FTP_USER@$FTP_HOST"
           fi
