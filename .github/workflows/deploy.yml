@@ -1,15 +1,15 @@
-name: Deploy Esteban IA por SFTP
+name: Deploy Esteban IA por SFTP (DESACTIVADO - el sitio ahora se sirve desde Railway)
 
-# Se ejecuta automáticamente cada vez que hay un push a "main".
-# También se puede lanzar manualmente desde la pestaña "Actions" en GitHub.
+# DESACTIVADO: el sitio se sirve desde Railway (ver server.js en la raiz) y se
+# redespliega solo con cada push a main. Este workflow queda solo como
+# respaldo manual por si algun dia hubiera que volver al hosting StackCP
+# (se puede lanzar a mano desde la pestaña "Actions").
 #
 # Nota: se usa SFTP (puerto 22) en vez de FTP normal porque StackCP corta la
 # conexión de datos FTP cuando viene desde IPs de datacenters como las de
 # GitHub Actions (funciona bien en FTP normal desde una red doméstica, pero
 # no desde la nube). SFTP usa un solo canal y no tiene ese problema.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 # El blog automatico puede hacer varios commits seguidos en una sola

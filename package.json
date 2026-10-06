@@ -2,11 +2,14 @@
   "name": "esteban-ia",
   "version": "1.0.0",
   "description": "Esteban Serna | Landing Page, AI Sales Funnel & Diagnostic Booking Platform",
-  "main": "index.html",
+  "main": "server.js",
   "scripts": {
-    "start": "npx serve . -p 8080",
-    "dev": "python -m http.server 8080",
-    "preview": "npx serve . -p 8080"
+    "start": "node server.js",
+    "dev": "node server.js",
+    "preview": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
   },
   "keywords": [
     "ai",
@@ -15,9 +18,7 @@
     "sales-funnel",
     "booking",
     "pwa",
-    "google-calendar",
-    "make",
-    "n8n"
+    "google-calendar"
   ],
   "author": "Esteban Serna",
   "license": "MIT"
