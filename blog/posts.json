@@ -56,13 +56,6 @@
     "hasCoverImage": true
   },
   {
-    "slug": "agente-de-ia-para-clinicas-agendamiento-automatico-citas",
-    "title": "Agente de IA para Clínicas: Agenda Citas Sola, 24/7",
-    "excerpt": "Un agente de IA para clínicas agenda, confirma y recuerda citas por WhatsApp las 24 horas, reduciendo inasistencias y la carga de tu recepción.",
-    "publishedAt": "2026-10-06T14:09:14.409Z",
-    "hasCoverImage": true
-  },
-  {
     "slug": "que-es-la-optimizacion-de-procesos-empresariales-con-ia",
     "title": "Qué Es la Optimización de Procesos con IA en tu Negocio",
     "excerpt": "Te explicamos en palabras simples qué es la optimización de procesos con IA y cómo puede ahorrarte tiempo y plata en tu negocio.",
@@ -116,6 +109,13 @@
     "title": "Cómo un Agente de IA Vende Automático Mientras Duermes",
     "excerpt": "Un agente de IA responde, califica y vende por WhatsApp las 24 horas. Conoce cómo funciona y cuánto le cuesta a tu negocio no tenerlo.",
     "publishedAt": "2026-11-15T14:01:03.371Z",
+    "hasCoverImage": true
+  },
+  {
+    "slug": "agente-de-ia-para-clinicas-agendamiento-automatico-citas",
+    "title": "Agente de IA para Clínicas: Agenda Citas Sin Perder Pacientes",
+    "excerpt": "Un agente de IA para clínicas atiende, agenda y confirma citas las 24 horas, reduciendo inasistencias y la carga de tu equipo administrativo.",
+    "publishedAt": "2026-11-18T14:01:11.352Z",
     "hasCoverImage": true
   }
 ]
