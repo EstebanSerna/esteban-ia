@@ -14,13 +14,6 @@
     "hasCoverImage": true
   },
   {
-    "slug": "mi-negocio-necesita-agente-de-ia-senales",
-    "title": "¿Mi Negocio Necesita un Agente de IA? 6 Señales Claras",
-    "excerpt": "Si te has preguntado \"¿mi negocio necesita agente de IA?\", estas señales te ayudarán a descubrirlo antes de invertir en tecnología que no usarás.",
-    "publishedAt": "2026-08-26T14:01:43.668Z",
-    "hasCoverImage": true
-  },
-  {
     "slug": "agente-de-ia-vs-chatbot-diferencias",
     "title": "Agente de IA vs Chatbot: la diferencia que debes conocer",
     "excerpt": "Chatbot y agente de IA no son lo mismo. Te explicamos la diferencia real, con ejemplos prácticos, para que sepas qué le conviene a tu negocio.",
@@ -116,6 +109,13 @@
     "title": "Agente de IA para Clínicas: Agenda Citas Sin Perder Pacientes",
     "excerpt": "Un agente de IA para clínicas atiende, agenda y confirma citas las 24 horas, reduciendo inasistencias y la carga de tu equipo administrativo.",
     "publishedAt": "2026-11-18T14:01:11.352Z",
+    "hasCoverImage": true
+  },
+  {
+    "slug": "mi-negocio-necesita-agente-de-ia-senales",
+    "title": "¿Mi Negocio Necesita un Agente de IA? 7 Señales Claras",
+    "excerpt": "¿Te preguntas si tu negocio necesita un agente de IA? Estas son las señales reales que indican que ya es momento, con datos actuales de Colombia.",
+    "publishedAt": "2026-11-24T14:01:17.497Z",
     "hasCoverImage": true
   }
 ]
